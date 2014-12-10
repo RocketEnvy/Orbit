@@ -1,0 +1,193 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="DebugGame_Game|x64">
+			<Configuration>DebugGame_Game</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="DebugGame_Game|Win32">
+			<Configuration>DebugGame_Game</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="DebugGame_Editor|x64">
+			<Configuration>DebugGame_Editor</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="DebugGame_Editor|Win32">
+			<Configuration>DebugGame_Editor</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Development_Game|x64">
+			<Configuration>Development_Game</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Development_Game|Win32">
+			<Configuration>Development_Game</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Development_Editor|x64">
+			<Configuration>Development_Editor</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Development_Editor|Win32">
+			<Configuration>Development_Editor</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Shipping_Game|x64">
+			<Configuration>Shipping_Game</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Shipping_Game|Win32">
+			<Configuration>Shipping_Game</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\Orbit.uproject" />
+		<None Include="..\..\Source\Orbit.Target.cs" />
+		<None Include="..\..\Source\OrbitEditor.Target.cs" />
+		<None Include="..\..\Config\DefaultEditor.ini" />
+		<None Include="..\..\Config\DefaultEngine.ini" />
+		<None Include="..\..\Config\DefaultGame.ini" />
+		<None Include="..\..\Config\DefaultInput.ini" />
+		<None Include="..\..\Source\Orbit\Orbit.Build.cs" />
+		<ClCompile Include="..\..\Source\Orbit\Private\Orbit.cpp" />
+		<ClCompile Include="..\..\Source\Orbit\Private\OrbitCharacter.cpp" />
+		<ClCompile Include="..\..\Source\Orbit\Private\OrbitGameMode.cpp" />
+		<ClCompile Include="..\..\Source\Orbit\Private\OrbitHUD.cpp" />
+		<ClCompile Include="..\..\Source\Orbit\Private\OrbitProjectile.cpp" />
+		<ClInclude Include="..\..\Source\Orbit\Public\Orbit.h" />
+		<ClInclude Include="..\..\Source\Orbit\Public\OrbitCharacter.h" />
+		<ClInclude Include="..\..\Source\Orbit\Public\OrbitGameMode.h" />
+		<ClInclude Include="..\..\Source\Orbit\Public\OrbitHUD.h" />
+		<ClInclude Include="..\..\Source\Orbit\Public\OrbitProjectile.h" />
+		<ResourceCompile Include="..\..\Source\Orbit\Resources\Windows\Orbit.rc" />
+	</ItemGroup>
+	<PropertyGroup Label="Globals">
+		<ProjectGuid>{E7FF152E-2091-4AEE-AE72-874E8E00754A}</ProjectGuid>
+		<Keyword>MakeFileProj</Keyword>
+		<RootNamespace>Orbit</RootNamespace>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Game|x64'" Label="Configuration">
+		<ConfigurationType>Makefile</ConfigurationType>
+		<PlatformToolset>v120</PlatformToolset>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Editor|x64'" Label="Configuration">
+		<ConfigurationType>Makefile</ConfigurationType>
+		<PlatformToolset>v120</PlatformToolset>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Game|x64'" Label="Configuration">
+		<ConfigurationType>Makefile</ConfigurationType>
+		<PlatformToolset>v120</PlatformToolset>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Editor|x64'" Label="Configuration">
+		<ConfigurationType>Makefile</ConfigurationType>
+		<PlatformToolset>v120</PlatformToolset>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping_Game|Win32'" Label="Configuration">
+		<ConfigurationType>Makefile</ConfigurationType>
+		<PlatformToolset>v120</PlatformToolset>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+	<ImportGroup Label="ExtensionSettings" />
+	<PropertyGroup Label="UserMacros" />
+	<ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Game|x64'" Label="PropertySheets">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Game|x64'">
+		<IncludePath />
+		<ReferencePath />
+		<LibraryPath />
+		<LibraryWPath />
+		<SourcePath />
+		<ExcludePath />
+		<OutDir>$(ProjectDir)..\Build\Unused\</OutDir>
+		<IntDir>$(ProjectDir)..\Build\Unused\</IntDir>
+		<NMakeBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Build.bat" Orbit Win64 DebugGame "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeBuildCommandLine>
+		<NMakeReBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Rebuild.bat" Orbit Win64 DebugGame "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeReBuildCommandLine>
+		<NMakeCleanCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Clean.bat" Orbit Win64 DebugGame "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeCleanCommandLine>
+		<NMakeOutput>..\..\Binaries\Win64\Orbit-Win64-DebugGame.exe</NMakeOutput>
+	</PropertyGroup>
+	<ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Editor|x64'" Label="PropertySheets">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGame_Editor|x64'">
+		<IncludePath />
+		<ReferencePath />
+		<LibraryPath />
+		<LibraryWPath />
+		<SourcePath />
+		<ExcludePath />
+		<OutDir>$(ProjectDir)..\Build\Unused\</OutDir>
+		<IntDir>$(ProjectDir)..\Build\Unused\</IntDir>
+		<NMakeBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Build.bat" OrbitEditor Win64 DebugGame "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeBuildCommandLine>
+		<NMakeReBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Rebuild.bat" OrbitEditor Win64 DebugGame "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeReBuildCommandLine>
+		<NMakeCleanCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Clean.bat" OrbitEditor Win64 DebugGame "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeCleanCommandLine>
+		<NMakeOutput>C:\Program Files\Unreal Engine\4.6\Engine\Binaries\Win64\UE4Editor.exe</NMakeOutput>
+	</PropertyGroup>
+	<ImportGroup Condition="'$(Configuration)|$(Platform)'=='Development_Game|x64'" Label="PropertySheets">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Game|x64'">
+		<IncludePath />
+		<ReferencePath />
+		<LibraryPath />
+		<LibraryWPath />
+		<SourcePath />
+		<ExcludePath />
+		<OutDir>$(ProjectDir)..\Build\Unused\</OutDir>
+		<IntDir>$(ProjectDir)..\Build\Unused\</IntDir>
+		<NMakeBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Build.bat" Orbit Win64 Development "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeBuildCommandLine>
+		<NMakeReBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Rebuild.bat" Orbit Win64 Development "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeReBuildCommandLine>
+		<NMakeCleanCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Clean.bat" Orbit Win64 Development "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeCleanCommandLine>
+		<NMakeOutput>..\..\Binaries\Win64\Orbit.exe</NMakeOutput>
+	</PropertyGroup>
+	<ImportGroup Condition="'$(Configuration)|$(Platform)'=='Development_Editor|x64'" Label="PropertySheets">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development_Editor|x64'">
+		<IncludePath />
+		<ReferencePath />
+		<LibraryPath />
+		<LibraryWPath />
+		<SourcePath />
+		<ExcludePath />
+		<OutDir>$(ProjectDir)..\Build\Unused\</OutDir>
+		<IntDir>$(ProjectDir)..\Build\Unused\</IntDir>
+		<NMakeBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Build.bat" OrbitEditor Win64 Development "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeBuildCommandLine>
+		<NMakeReBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Rebuild.bat" OrbitEditor Win64 Development "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeReBuildCommandLine>
+		<NMakeCleanCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Clean.bat" OrbitEditor Win64 Development "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeCleanCommandLine>
+		<NMakeOutput>C:\Program Files\Unreal Engine\4.6\Engine\Binaries\Win64\UE4Editor.exe</NMakeOutput>
+	</PropertyGroup>
+	<ImportGroup Condition="'$(Configuration)|$(Platform)'=='Shipping_Game|Win32'" Label="PropertySheets">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping_Game|Win32'">
+		<IncludePath />
+		<ReferencePath />
+		<LibraryPath />
+		<LibraryWPath />
+		<SourcePath />
+		<ExcludePath />
+		<OutDir>$(ProjectDir)..\Build\Unused\</OutDir>
+		<IntDir>$(ProjectDir)..\Build\Unused\</IntDir>
+		<NMakeBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Build.bat" Orbit Win32 Shipping "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeBuildCommandLine>
+		<NMakeReBuildCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Rebuild.bat" Orbit Win32 Shipping "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeReBuildCommandLine>
+		<NMakeCleanCommandLine>"C:\Program Files\Unreal Engine\4.6\Engine\Build\BatchFiles\Clean.bat" Orbit Win32 Shipping "$(SolutionDir)$(ProjectName).uproject" -rocket</NMakeCleanCommandLine>
+		<NMakeOutput>..\..\Binaries\Win32\Orbit-Win32-Shipping.exe</NMakeOutput>
+	</PropertyGroup>
+	<PropertyGroup>
+		<NMakePreprocessorDefinitions>$(NMakePreprocessorDefinitions);UE_GAME=1;IS_PROGRAM=0;UE_ROCKET=1;UNICODE;_UNICODE;__UNREAL__;IS_MONOLITHIC=1;WITH_ENGINE=1;WITH_UNREAL_DEVELOPER_TOOLS=0;WITH_COREUOBJECT=1;USE_STATS_WITHOUT_ENGINE=0;WITH_PLUGIN_SUPPORT=0;USE_LOGGING_IN_SHIPPING=0;UE_BUILD_MINIMAL=1;WITH_EDITOR=1;WITH_EDITORONLY_DATA=0;WITH_SERVER_CODE=1;UBT_COMPILED_PLATFORM=Win64;WIN32=1;_WIN32_WINNT=0x0600;WINVER=0x0600;PLATFORM_WINDOWS=1;NDEBUG=1;UE_BUILD_DEVELOPMENT=1;UE_ENGINE_DIRECTORY=../../../../../../../Program Files/Unreal Engine/4.6/Engine/;UE_PROJECT_NAME=Orbit;ORIGINAL_FILE_NAME="Orbit.exe";DEPRECATED_FORGAME=DEPRECATED;ORBIT_API=;UE_ENABLE_ICU=1;WITH_STEAMWORKS=1;WITH_DIRECTXMATH=0;CORE_API=;COREUOBJECT_API=;WITH_PHYSX=1;WITH_APEX=1;WITH_RUNTIME_PHYSICS_COOKING;WITH_BOX2D=1;WITH_RECAST=1;ENGINE_API=;JSON_API=;WITH_FREETYPE=1;SLATE_API=;INPUTCORE_API=;SLATECORE_API=;MESSAGING_API=;RENDERCORE_API=;RHI_API=;SHADERCORE_API=;ASSETREGISTRY_API=;ENGINEMESSAGES_API=;ENGINESETTINGS_API=;SYNTHBENCHMARK_API=;RENDERER_API=;AIMODULE_API=;VECTORVM_API=;DATABASESUPPORT_API=;UE_EDITOR=1;UNREALED_API=;BSPMODE_API=;DOCUMENTATION_API=;PROJECTS_API=;SANDBOXFILE_API=;EDITORSTYLE_API=;SOURCECONTROL_API=;UNREALEDMESSAGES_API=;BLUEPRINTGRAPH_API=;XAUDIO2_API=;USERFEEDBACK_API=;COLLECTIONMANAGER_API=;NIAGARAEDITOR_API=;GRAPHEDITOR_API=;INTROTUTORIALS_API=;LEVELEDITOR_API=;SETTINGS_API=;KISMET_API=</NMakePreprocessorDefinitions>
+		<NMakeIncludeSearchPath>$(NMakeIncludeSearchPath);C:\Program Files\Unreal Engine\4.6\Engine\Source;..\..\Source;..\Build\Win64\Orbit\Inc\Orbit;..\..\Source\Orbit\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Internationalization;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Async;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Concurrency;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Containers;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Delegates;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\GenericPlatform;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\HAL;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Logging;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Math;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Misc;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Modules;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Modules\Boilerplate;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\ProfilingDebugging;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Serialization;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Serialization\Json;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Serialization\Csv;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Stats;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Templates;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\UObject;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core\Public\Windows;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Core;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\CoreUObject;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject\Public\Blueprint;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject\Public\Misc;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject\Public\Serialization;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject\Public\Templates;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject\Public\UObject;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\CoreUObject;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Engine;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\AI;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\EdGraph;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\Features;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\Net;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\Slate;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\Tests;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\VisualLogger;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine\Public\AI\Navigation;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Json;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Json\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Json\Public\Dom;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Json\Public\Policies;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Json\Public\Serialization;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Json;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Slate;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Application;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Commands;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Docking;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Layout;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\MultiBox;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Notifications;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Styling;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Text;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Views;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Text\Android;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Framework\Text\IOS;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Colors;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Docking;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Images;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Input;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Layout;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Navigation;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Notifications;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Text;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate\Public\Widgets\Views;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\InputCore\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\InputCore;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\InputCore\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\InputCore;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\SlateCore;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Animation;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Application;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Brushes;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Fonts;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Input;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Layout;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Logging;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Rendering;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Sound;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Styling;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Textures;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Types;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore\Public\Widgets;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SlateCore;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Slate;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Messaging;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Messaging\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Messaging\Public\Deprecated;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Messaging\Public\Helpers;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Messaging;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\RenderCore;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\RenderCore\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\RenderCore;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\RHI;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\RHI\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\RHI;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\ShaderCore;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\ShaderCore\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\ShaderCore;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\AssetRegistry;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\AssetRegistry\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\AssetRegistry;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\EngineMessages\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\EngineMessages;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\EngineMessages\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\EngineMessages;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\EngineSettings\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\EngineSettings;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\EngineSettings\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\EngineSettings;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\SynthBenchmark;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\SynthBenchmark\Public;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Renderer;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Renderer\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Renderer;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\SynthBenchmark;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\AIModule\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\AIModule\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\AIModule;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\AIModule;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\VectorVM;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\VectorVM\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\VectorVM;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\DatabaseSupport;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\DatabaseSupport\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\DatabaseSupport;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Engine;..\..\Source\Orbit;..\Build\Win64\Inc\Orbit;C:\Program Files\Unreal Engine\4.6\Engine\Source\Programs\UnrealLightmass\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\UnrealEd;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\Commandlets;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\Dialogs;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\DragAndDrop;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\Features;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\Kismet2;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\Layers;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\Tests;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd\Public\Toolkits;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\BspMode;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\BspMode\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\BspMode;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Documentation;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\Documentation\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\Documentation;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Projects;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Projects\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Projects\Public\Interfaces;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Projects;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\SandboxFile;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SandboxFile\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\SandboxFile;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\EditorStyle;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\EditorStyle\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\EditorStyle\Public\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\EditorStyle\Public\Interfaces;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\EditorStyle;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\SourceControl;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\SourceControl\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\SourceControl\Public\Tests;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\SourceControl;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEdMessages\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\UnrealEdMessages;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEdMessages\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEdMessages;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\BlueprintGraph\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\BlueprintGraph;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\BlueprintGraph\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\BlueprintGraph;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\XAudio2;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Windows\XAudio2\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Runtime\Windows\XAudio2;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\UserFeedback;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UserFeedback\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UserFeedback;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\CollectionManager;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\CollectionManager\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\CollectionManager;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\NiagaraEditor;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\NiagaraEditor\Public;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\GraphEditor;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\GraphEditor\Public;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\IntroTutorials;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\IntroTutorials\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\IntroTutorials;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\GraphEditor;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\LevelEditor;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\LevelEditor\Public;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Settings;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\Settings\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Developer\Settings;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\LevelEditor;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\NiagaraEditor;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\UnrealEd;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\Kismet\Classes;C:\Program Files\Unreal Engine\4.6\Engine\Intermediate\Build\Win64\Inc\Kismet;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\Kismet\Public;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\Kismet\Public\WorkflowOrientedApp;C:\Program Files\Unreal Engine\4.6\Engine\Source\Editor\Kismet;C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\INCLUDE;C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\ATLMFC\INCLUDE;C:\Program Files (x86)\Windows Kits\8.1\include\shared;C:\Program Files (x86)\Windows Kits\8.1\include\um;C:\Program Files (x86)\Windows Kits\8.1\include\winrt;;</NMakeIncludeSearchPath>
+		<NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+		<NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+		<NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+	</PropertyGroup>
+	<ItemDefinitionGroup>
+	</ItemDefinitionGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+	<ImportGroup Label="ExtensionTargets">
+	</ImportGroup>
+</Project>
