@@ -4,13 +4,14 @@
 #include "OrbitCharacter.h"
 #include "OrbitProjectile.h"
 #include "Animation/AnimInstance.h"
+#include "OrbitCharacterMovementComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 // AOrbitCharacter
 
 AOrbitCharacter::AOrbitCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOrbitCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
