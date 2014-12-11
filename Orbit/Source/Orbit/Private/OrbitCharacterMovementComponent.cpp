@@ -50,6 +50,7 @@ UOrbitCharacterMovementComponent::UOrbitCharacterMovementComponent(const class F
 	bMaintainHorizontalGroundVelocity = false;
 	//	SetWalkableFloorZ(11110.f); //doesn't seem to matter currently
 
+	OldGravDir = FVector(0, 0, 0);
 
 	//	UE_LOG(LogTemp, Warning, TEXT("!!!!!!!!!!!!!!!!!!!!!!!!! Super Happy happy constructor"));
 
@@ -67,11 +68,9 @@ float UOrbitCharacterMovementComponent::GetGravityZ() const
 // Normalized Gravity Direction Vector
 FVector UOrbitCharacterMovementComponent::GetGravityDir() const
 {
-	FVector v;
-	v = (FVector(0.f, 0.f, 5000.f) - GetActorLocation());
-	v.Normalize();
-	
-	return v;
+	//FIXME Need to iterate over massive things to get vector sum of direction and force
+	//This may not even be the right class for it
+	return -( GetActorLocation()-FVector(0.f, 0.f, 5000.f) ).UnsafeNormal();
 }
 
 // Magnitude and Direction Vector of Gravity
@@ -128,18 +127,19 @@ void UOrbitCharacterMovementComponent::SetPostLandedPhysics(const FHitResult& Hi
 }
 bool UOrbitCharacterMovementComponent::DoJump(bool bReplayingMoves)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Jump!!!"));
+	UE_LOG(LogTemp, Warning, TEXT("Jump!!! %s"), *CharacterOwner->GetActorLocation().ToString());
 	if (CharacterOwner && CharacterOwner->CanJump())
 	{
 	UE_LOG(LogTemp, Warning, TEXT("Jump!!! Can Jump"));
 		// Don't jump if we can't move up/down.
 		if (!bConstrainToPlane || FMath::Abs(PlaneConstraintNormal.Z) != 1.f)
 		{
+			const FVector GravityDir = GetGravityV();
 	UE_LOG(LogTemp, Warning, TEXT("Jump!!! No up down constraint"));
 		//orig	Velocity.Z = JumpZVelocity;
 	UE_LOG(LogTemp, Warning, TEXT("Jump!!! vel1:%s"), *Velocity.ToString());
-			Velocity += GetGravityDir() * JumpZVelocity;
-	UE_LOG(LogTemp, Warning, TEXT("Jump!!! vel2:%s"), *Velocity.ToString());
+			Velocity -= GetGravityDir() * JumpZVelocity;//subtract b/c jump force opposes grav force
+	UE_LOG(LogTemp, Warning, TEXT("Jump!!! GravityVec:%s"), *GravityDir.ToString());
 			SetMovementMode(MOVE_Falling);
 			// this->GetCharacterOwner()->ClientSetRotation( GetGravityDir().Rotation() );//gdg attempt sorta but not quite
 
@@ -170,7 +170,7 @@ void UOrbitCharacterMovementComponent::PhysWalking(float deltaTime, int32 Iterat
 		SetMovementMode(MOVE_Walking);
 		return;
 	}
-	if (Velocity.ContainsNaN()) Velocity = FVector(0, 0, 0);//gdg added to prevent exception, no idea what I did to need this
+	if (Velocity.ContainsNaN()) Velocity = FVector(0, 0, -10);//gdg added to prevent exception, no idea what I did to need this
 	checkf(!Velocity.ContainsNaN(), TEXT("PhysWalking: Velocity contains NaN before Iteration (%s: %s)\n%s"), *GetPathNameSafe(this), *GetPathNameSafe(GetOuter()), *Velocity.ToString());
 
 	bJustTeleported = false;
@@ -887,6 +887,33 @@ enum ELevelTick TickType,
 
 	//begin
 
+	/* Get some sort of gimble lock at north pole
+	if (OldGravDir == FVector(0, 0, 0)) OldGravDir = GetGravityDir();
+	FVector CurrGravDir = GetGravityDir();
+	FQuat q1 = CurrGravDir.Rotation().Quaternion();
+	FQuat q2 = OldGravDir.Rotation().Quaternion();
+	//FQuat NewQuat = q2 * q1 * q2.Inverse();
+	FQuat NewQuat = q1 - q2 ;
+		GetCharacterOwner()->AddActorLocalRotation(NewQuat.Rotator());
+	OldGravDir = CurrGravDir;
+	*/
+	if (OldGravDir == FVector(0, 0, 0)) OldGravDir = GetGravityDir();
+	FVector CurrGravDir = GetGravityDir();
+	FRotator RealRot = GetCharacterOwner()->GetControlRotation() - OldGravDir.Rotation();
+	FRotator NewRot = CurrGravDir.Rotation() - OldGravDir.Rotation();
+	if (NewRot.ContainsNaN()){
+		UE_LOG(LogTemp, Warning, TEXT("SetRotTo NaN Yo Business"));
+	} else{
+		if (NewRot.Pitch < 0.0) NewRot.Pitch += 360.0;
+		if (NewRot.Yaw < 0.0) NewRot.Yaw += 360.0;
+		if (NewRot.Roll < 0.0) NewRot.Roll += 360.0;
+		//GetCharacterOwner()->AddActorLocalRotation(NewRot);
+		GetCharacterOwner()->AddActorWorldRotation(NewRot);
+	}
+	OldGravDir = CurrGravDir;
+	/*
+	*/
+	//this->GetCharacterOwner()->ClientSetRotation(-GetGravityDir().Rotation() * DeltaTime);//gdg attempt sorta but not quite
 	const FVector InputVector = ConsumeInputVector();
 	if (!HasValidData() || ShouldSkipUpdate(DeltaTime) || UpdatedComponent->IsSimulatingPhysics())
 	{
@@ -963,10 +990,10 @@ enum ELevelTick TickType,
 			{
 				if (StandingDownwardForceScale != 0.f && BaseComp->IsAnySimulatingPhysics())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Applying Downforce")); //dont seem to get here
+					UE_LOG(LogTemp, Warning, TEXT("Applying Downforce"));
 					const FVector ForceLocation = CurrentFloor.HitResult.ImpactPoint;
-					//	BaseComp->AddForceAtLocation(GetGravityV() * Mass * StandingDownwardForceScale, ForceLocation, CurrentFloor.HitResult.BoneName);
-					BaseComp->AddForceAtLocation(GetGravityV(), ForceLocation, CurrentFloor.HitResult.BoneName);
+					BaseComp->AddForceAtLocation(GetGravityV() * Mass * StandingDownwardForceScale, ForceLocation, CurrentFloor.HitResult.BoneName);
+					//BaseComp->AddForceAtLocation(GetGravityV(), ForceLocation, CurrentFloor.HitResult.BoneName);
 
 				}
 			}
@@ -1066,13 +1093,19 @@ FVector UOrbitCharacterMovementComponent::GetLedgeMove(const FVector& OldLocatio
 
 FVector UOrbitCharacterMovementComponent::ComputeGroundMovementDelta(const FVector& Delta, const FHitResult& RampHit, const bool bHitFromLineTrace) const
 {
+	//return FVector(1, 1, 1);//will head in 1 directon no matter what key pressed
 	const FVector FloorNormal = RampHit.ImpactNormal;
 	//const FVector FloorNormal = FQuat::FindBetween(RampHit.ImpactNormal, -GetGravityDir()).GetRotationAxis() ;
 	//seems i'll need soemthing likke that for stair/ramp climbing
 	const FVector ContactNormal = RampHit.Normal;
 
-	//	if (FloorNormal.Z < (1.f - KINDA_SMALL_NUMBER) && FloorNormal.Z > KINDA_SMALL_NUMBER && ContactNormal.Z > KINDA_SMALL_NUMBER && !bHitFromLineTrace && IsWalkable(RampHit))
-	//{
+	if (
+		FloorNormal.Z < (1.f - KINDA_SMALL_NUMBER) 
+		&& FloorNormal.Z > KINDA_SMALL_NUMBER 
+		&& ContactNormal.Z > KINDA_SMALL_NUMBER 
+		&& !bHitFromLineTrace && IsWalkable(RampHit))
+	{
+	UE_LOG(LogTemp, Warning, TEXT(" @ Floor shit @"));
 	//get here until hit weirdness slope
 	//UE_LOG(LogTemp, Warning, TEXT(" @ Floor shit @"));
 	// Compute a vector that moves parallel to the surface, by projecting the horizontal movement direction onto the ramp.
@@ -1092,7 +1125,7 @@ FVector UOrbitCharacterMovementComponent::ComputeGroundMovementDelta(const FVect
 		//get here UE_LOG(LogTemp, Warning, TEXT(" @ floor b2 @"));
 		return RampMovement.SafeNormal() * Delta.Size();
 	}
-	//	}
+		}
 
 	return Delta;
 }
@@ -1227,7 +1260,8 @@ void UOrbitCharacterMovementComponent::MoveAlongFloor(const FVector& InVelocity,
 
 				// hit a barrier, try to step up
 				// const FVector GravDir(0.f, 0.f, -1.f);
-				const FVector GravDir = -GetGravityDir(); //negative will make player bounce to safety rather than get stuck
+				//denegated 2014-12-10
+				const FVector GravDir = GetGravityDir(); //negative will make player bounce to safety rather than get stuck
 
 				if (!StepUp(GravDir, Delta * (1.f - PercentTimeApplied), Hit, OutStepDownResult))
 				{

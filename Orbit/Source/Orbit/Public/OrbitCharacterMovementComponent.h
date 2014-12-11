@@ -17,6 +17,7 @@ class ORBIT_API UOrbitCharacterMovementComponent : public UCharacterMovementComp
 public:
 	UOrbitCharacterMovementComponent(const class FObjectInitializer& PCIP);
 
+	FVector OldGravDir;
 	virtual bool DoJump(bool bReplayingMoves) override;
 	virtual float GetGravityZ() const override;
 	FVector GetGravityV() const;
