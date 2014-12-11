@@ -1,4 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+/* Big clue, if map re-arranged so gravity center is at very bottom of sphere, it is possible to walk upside down to it but can't go past.
+So the problem probably has something to do with the gravity vector and not the slope of the floor.
+*/
 
 #include "Orbit.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -152,6 +155,7 @@ bool UOrbitCharacterMovementComponent::DoJump(bool bReplayingMoves)
 
 void UOrbitCharacterMovementComponent::PhysWalking(float deltaTime, int32 Iterations)
 {
+	//check SimulateRootMotion
 
 	if (deltaTime < MIN_TICK_TIME)
 	{
@@ -378,6 +382,7 @@ void UOrbitCharacterMovementComponent::PhysWalking(float deltaTime, int32 Iterat
 
 void UOrbitCharacterMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration)
 {
+//	return; // oddly enough, causes runaway acceleration. Leave it for now b/c still hitting equatorial wall
 	// UE_LOG(LogTemp, Warning, TEXT("ReqCC:%s"), *Acceleration.ToString());//hmmm I thought Acceleration.Z wasn't 0 here but it is 0....
 	//	UE_LOG(LogTemp, Warning, TEXT(" CalcVelocity: DeltaTime:%f, Friction:%f, Braking:%f"), DeltaTime, Friction, BrakingDeceleration);
 	Friction = 0;
@@ -402,7 +407,6 @@ void UOrbitCharacterMovementComponent::CalcVelocity(float DeltaTime, float Frict
 		RequestedAcceleration.ClampMaxSize(MaxAccel);
 		bZeroRequestedAcceleration = false;
 	}
-
 	if (bForceMaxAccel)
 	{
 		// Force acceleration at full speed.
@@ -422,7 +426,6 @@ void UOrbitCharacterMovementComponent::CalcVelocity(float DeltaTime, float Frict
 	// Path following above didn't care about the analog modifier, but we do for everything else below, so get the fully modified value.
 	// Use max of requested speed and max speed if we modified the speed in ApplyRequestedMove above.
 	MaxSpeed = FMath::Max(RequestedSpeed, MaxSpeed * AnalogInputModifier);
-
 	// Apply braking or deceleration
 	const bool bZeroAcceleration = Acceleration.IsZero();
 	const bool bVelocityOverMax = IsExceedingMaxSpeed(MaxSpeed);
@@ -435,7 +438,9 @@ void UOrbitCharacterMovementComponent::CalcVelocity(float DeltaTime, float Frict
 		// Don't allow braking to lower us below max speed if we started above it.
 		if (bVelocityOverMax && Velocity.SizeSquared() < FMath::Square(MaxSpeed) && FVector::DotProduct(Acceleration, OldVelocity) > 0.0f)
 		{
-			Velocity = SafeNormalPrecise(OldVelocity) * MaxSpeed;
+
+			//normal function might be zeroing out Z
+			 Velocity = SafeNormalPrecise(OldVelocity) * MaxSpeed;
 		}
 	}
 	else if (!bZeroAcceleration)
@@ -452,7 +457,6 @@ void UOrbitCharacterMovementComponent::CalcVelocity(float DeltaTime, float Frict
 	{
 		Velocity = Velocity * (1.f - FMath::Min(Friction * DeltaTime, 1.f));
 	}
-
 	// Apply acceleration
 	const float NewMaxSpeed = (IsExceedingMaxSpeed(MaxSpeed)) ? Velocity.Size() : MaxSpeed;
 	Velocity += Acceleration * DeltaTime;
@@ -780,6 +784,7 @@ bool UOrbitCharacterMovementComponent::IsValidLandingSpot(const FVector& Capsule
 }
 void UOrbitCharacterMovementComponent::PhysSwimming(float deltaTime, int32 Iterations)
 {
+	/*
 	if (deltaTime < MIN_TICK_TIME)
 	{
 		return;
@@ -870,6 +875,7 @@ void UOrbitCharacterMovementComponent::PhysSwimming(float deltaTime, int32 Itera
 	{
 		StartNewPhysics(remainingTime, Iterations);
 	}
+	*/
 }
 
 //Tick Comp
@@ -1093,27 +1099,31 @@ FVector UOrbitCharacterMovementComponent::GetLedgeMove(const FVector& OldLocatio
 
 FVector UOrbitCharacterMovementComponent::ComputeGroundMovementDelta(const FVector& Delta, const FHitResult& RampHit, const bool bHitFromLineTrace) const
 {
-	//return FVector(1, 1, 1);//will head in 1 directon no matter what key pressed
-	const FVector FloorNormal = RampHit.ImpactNormal;
-	//const FVector FloorNormal = FQuat::FindBetween(RampHit.ImpactNormal, -GetGravityDir()).GetRotationAxis() ;
-	//seems i'll need soemthing likke that for stair/ramp climbing
-	const FVector ContactNormal = RampHit.Normal;
+	const FVector FloorNormal = RampHit.ImpactNormal;// has Z
+	//orig const FVector ContactNormal = RampHit.Normal; // zero Z
+	const FVector ContactNormal = -GetGravityDir();
+	//FVector tmp = Delta;
+	FVector tmp = GetGravityDir();
+	//tmp.Z = FloorNormal.Z;
+
 
 	if (
+		/*
 		FloorNormal.Z < (1.f - KINDA_SMALL_NUMBER) 
 		&& FloorNormal.Z > KINDA_SMALL_NUMBER 
 		&& ContactNormal.Z > KINDA_SMALL_NUMBER 
-		&& !bHitFromLineTrace && IsWalkable(RampHit))
+		&& 
+		*/
+		!bHitFromLineTrace && IsWalkable(RampHit))
 	{
-	UE_LOG(LogTemp, Warning, TEXT(" @ Floor shit @"));
-	//get here until hit weirdness slope
-	//UE_LOG(LogTemp, Warning, TEXT(" @ Floor shit @"));
 	// Compute a vector that moves parallel to the surface, by projecting the horizontal movement direction onto the ramp.
-	const float FloorDotDelta = (FloorNormal | Delta);
-	FVector RampMovement(Delta.X, Delta.Y, -FloorDotDelta / FloorNormal.Z);
-	//FVector RampMovement(11.f,11.f, -11.f);//can very clumsily walk around world through poles with this
-
-	//UE_LOG(LogTemp, Warning, TEXT(" @ Ramp Vec %s"), *RampMovement.ToString());
+	//const float FloorDotDelta = (FloorNormal | Delta);
+	/*FVector RampMovement(Delta.X, Delta.Y, -FloorDotDelta / FloorNormal.Z);*/
+//		Delta.Z = FloorNormal.Z;
+	FVector RampMovement = FloorNormal.ProjectOnTo(Delta)  * 10000.0;
+		UE_LOG(LogTemp, Warning, TEXT("FloorNormal:%s"), *FloorNormal.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Delta:%s"), *Delta.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("RampMovement:%s"), *RampMovement.ToString());
 
 	if (bMaintainHorizontalGroundVelocity)
 	{
@@ -1181,12 +1191,13 @@ void UOrbitCharacterMovementComponent::SetWalkableFloorZ(float InWalkableFloorZ)
 	WalkableFloorAngle = FMath::RadiansToDegrees(FMath::Acos(WalkableFloorZ));
 }
 
+//InVelocity.Z is stuck at 0. 
 void UOrbitCharacterMovementComponent::MoveAlongFloor(const FVector& InVelocity, float DeltaSeconds, FStepDownResult* OutStepDownResult)
 {
 	//const FVector Delta = FVector(InVelocity.X, InVelocity.Y, 0.f) * DeltaSeconds;
 	// const FVector Delta = FVector(InVelocity.X, InVelocity.Y, InVelocity.Z) * DeltaSeconds;
 	const FVector Delta = InVelocity * DeltaSeconds;//gdg Delta.Z is always 0
-//	 UE_LOG(LogTemp, Warning, TEXT(" @ MOVE ALONG FLOOR Delta:%s"), *Delta.ToString());
+	 //UE_LOG(LogTemp, Warning, TEXT(" @ MOVE ALONG FLOOR InVelocity:%s"), *InVelocity.ToString());
 
 	/* CurrentFloor is a stuct with data and methods, a class, partially defined in this file and the header
 	AdjustFloorHeight , UpdateFloorFromAdjustment, StepUp, (bForceNextFloorCheck), ComputeFloorDist
@@ -1669,6 +1680,8 @@ void UOrbitCharacterMovementComponent::PerformMovement(float DeltaSeconds)
 			// Then turn root motion to velocity to be used by various physics modes.
 			if (DeltaSeconds > 0.f)
 			{
+				//Don't seem to get here
+				UE_LOG(LogRootMotion, Log, TEXT("Doing shit with root motion"));
 				const FVector RootMotionVelocity = RootMotionParams.RootMotionTransform.GetTranslation() / DeltaSeconds;
 				// Do not override Velocity.Z if in falling physics, we want to keep the effect of gravity.
 				//Velocity = FVector(RootMotionVelocity.X, RootMotionVelocity.Y, (MovementMode == MOVE_Falling ? Velocity.Z : RootMotionVelocity.Z));
@@ -2138,4 +2151,217 @@ void UOrbitCharacterMovementComponent::OnMovementModeChanged(EMovementMode Previ
 	}
 
 	CharacterOwner->OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+}
+
+bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FVector& Delta, const FHitResult &InHit, FStepDownResult* OutStepDownResult)
+{
+	return false;
+	if (!CanStepUp(InHit))
+	{
+		return false;
+	}
+
+	if (MaxStepHeight <= 0.f)
+	{
+		return false;
+	}
+
+	const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+	float PawnRadius, PawnHalfHeight;
+	CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleSize(PawnRadius, PawnHalfHeight);
+
+	// Don't bother stepping up if top of capsule is hitting something.
+	const float InitialImpactZ = InHit.ImpactPoint.Z;
+	if (InitialImpactZ > OldLocation.Z + (PawnHalfHeight - PawnRadius))
+	{
+		return false;
+	}
+
+	// Don't step up if the impact is below us
+	if (InitialImpactZ <= OldLocation.Z - PawnHalfHeight)
+	{
+		return false;
+	}
+
+	const FVector GravDir = InGravDir.SafeNormal();
+	if (GravDir.IsZero())
+	{
+		return false;
+	}
+
+	float StepTravelUpHeight = MaxStepHeight;
+	float StepTravelDownHeight = StepTravelUpHeight;
+	const float StepSideZ = -1.f * (InHit.ImpactNormal | GravDir);
+	float PawnInitialFloorBaseZ = OldLocation.Z - PawnHalfHeight;
+	float PawnFloorPointZ = PawnInitialFloorBaseZ;
+
+	if (IsMovingOnGround() && CurrentFloor.IsWalkableFloor())
+	{
+		// Since we float a variable amount off the floor, we need to enforce max step height off the actual point of impact with the floor.
+		const float FloorDist = FMath::Max(0.f, CurrentFloor.FloorDist);
+		PawnInitialFloorBaseZ -= FloorDist;
+		StepTravelUpHeight = FMath::Max(StepTravelUpHeight - FloorDist, 0.f);
+		StepTravelDownHeight = (MaxStepHeight + MAX_FLOOR_DIST*2.f);
+
+		const bool bHitVerticalFace = !IsWithinEdgeTolerance(InHit.Location, InHit.ImpactPoint, PawnRadius);
+		if (!CurrentFloor.bLineTrace && !bHitVerticalFace)
+		{
+			PawnFloorPointZ = CurrentFloor.HitResult.ImpactPoint.Z;
+		}
+		else
+		{
+			// Base floor point is the base of the capsule moved down by how far we are hovering over the surface we are hitting.
+			PawnFloorPointZ -= CurrentFloor.FloorDist;
+		}
+	}
+
+	// Scope our movement updates, and do not apply them until all intermediate moves are completed.
+	FScopedMovementUpdate ScopedStepUpMovement(UpdatedComponent, EScopedUpdate::DeferredUpdates);
+
+	// step up - treat as vertical wall
+	FHitResult SweepUpHit(1.f);
+	const FRotator PawnRotation = CharacterOwner->GetActorRotation();
+	SafeMoveUpdatedComponent(-GravDir * StepTravelUpHeight, PawnRotation, true, SweepUpHit);
+
+	// step fwd
+	FHitResult Hit(1.f);
+	SafeMoveUpdatedComponent( Delta, PawnRotation, true, Hit);
+
+	// If we hit something above us and also something ahead of us, we should notify about the upward hit as well.
+	// The forward hit will be handled later (in the bSteppedOver case below).
+	// In the case of hitting something above but not forward, we are not blocked from moving so we don't need the notification.
+	if (SweepUpHit.bBlockingHit && Hit.bBlockingHit)
+	{
+		HandleImpact(SweepUpHit);
+	}
+
+	// Check result of forward movement
+	if (Hit.bBlockingHit)
+	{
+		if (Hit.bStartPenetrating)
+		{
+			// Undo movement
+			ScopedStepUpMovement.RevertMove();
+			return false;
+		}
+
+		// pawn ran into a wall
+		HandleImpact(Hit);
+		if ( IsFalling() )
+		{
+			return true;
+		}
+
+		// adjust and try again
+		const float ForwardHitTime = Hit.Time;
+		const float ForwardSlideAmount = SlideAlongSurface(Delta, 1.f - Hit.Time, Hit.Normal, Hit, true);
+		
+		if (IsFalling())
+		{
+			ScopedStepUpMovement.RevertMove();
+			return false;
+		}
+
+		// If both the forward hit and the deflection got us nowhere, there is no point in this step up.
+		if (ForwardHitTime == 0.f && ForwardSlideAmount == 0.f)
+		{
+			ScopedStepUpMovement.RevertMove();
+			return false;
+		}
+	}
+	
+	// Step down
+	SafeMoveUpdatedComponent(GravDir * StepTravelDownHeight, CharacterOwner->GetActorRotation(), true, Hit);
+
+	// If step down was initially penetrating abort the step up
+	if (Hit.bStartPenetrating)
+	{
+		ScopedStepUpMovement.RevertMove();
+		return false;
+	}
+
+	FStepDownResult StepDownResult;
+	if (Hit.IsValidBlockingHit())
+	{	
+		// See if this step sequence would have allowed us to travel higher than our max step height allows.
+		const float DeltaZ = Hit.ImpactPoint.Z - PawnFloorPointZ;
+		if (DeltaZ > MaxStepHeight)
+		{
+			//UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (too high Height %.3f) up from floor base %f to %f"), DeltaZ, PawnInitialFloorBaseZ, NewLocation.Z);
+			ScopedStepUpMovement.RevertMove();
+			return false;
+		}
+
+		// Reject unwalkable surface normals here.
+		if (!IsWalkable(Hit))
+		{
+			// Reject if normal opposes movement direction
+			const bool bNormalTowardsMe = (Delta | Hit.ImpactNormal) < 0.f;
+			if (bNormalTowardsMe)
+			{
+				//UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (unwalkable normal %s opposed to movement)"), *Hit.ImpactNormal.ToString());
+				ScopedStepUpMovement.RevertMove();
+				return false;
+			}
+
+			// Also reject if we would end up being higher than our starting location by stepping down.
+			// It's fine to step down onto an unwalkable normal below us, we will just slide off. Rejecting those moves would prevent us from being able to walk off the edge.
+			if (Hit.Location.Z > OldLocation.Z)
+			{
+				//UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (unwalkable normal %s above old position)"), *Hit.ImpactNormal.ToString());
+				ScopedStepUpMovement.RevertMove();
+				return false;
+			}
+		}
+
+		// Reject moves where the downward sweep hit something very close to the edge of the capsule. This maintains consistency with FindFloor as well.
+		if (!IsWithinEdgeTolerance(Hit.Location, Hit.ImpactPoint, PawnRadius))
+		{
+			//UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (outside edge tolerance)"));
+			ScopedStepUpMovement.RevertMove();
+			return false;
+		}
+
+		// Don't step up onto invalid surfaces if traveling higher.
+		if (DeltaZ > 0.f && !CanStepUp(Hit))
+		{
+			//UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (up onto surface with !CanStepUp())"));
+			ScopedStepUpMovement.RevertMove();
+			return false;
+		}
+
+		// See if we can validate the floor as a result of this step down. In almost all cases this should succeed, and we can avoid computing the floor outside this method.
+		if (OutStepDownResult != NULL)
+		{
+			FindFloor(UpdatedComponent->GetComponentLocation(), StepDownResult.FloorResult, false, &Hit);
+
+			// Reject unwalkable normals if we end up higher than our initial height.
+			// It's fine to walk down onto an unwalkable surface, don't reject those moves.
+			if (Hit.Location.Z > OldLocation.Z)
+			{
+				// We should reject the floor result if we are trying to step up an actual step where we are not able to perch (this is rare).
+				// In those cases we should instead abort the step up and try to slide along the stair.
+				/*
+				if (!StepDownResult.FloorResult.bBlockingHit && StepSideZ < MAX_STEP_SIDE_Z)
+				{
+					ScopedStepUpMovement.RevertMove();
+					return false;
+				}
+				*/
+			}
+
+			StepDownResult.bComputedFloor = true;
+		}
+	}
+	
+	// Copy step down result.
+	if (OutStepDownResult != NULL)
+	{
+		*OutStepDownResult = StepDownResult;
+	}
+
+	// Don't recalculate velocity based on this height adjustment, if considering vertical adjustments.
+	bJustTeleported |= !bMaintainHorizontalGroundVelocity;
+
+	return true;
 }
