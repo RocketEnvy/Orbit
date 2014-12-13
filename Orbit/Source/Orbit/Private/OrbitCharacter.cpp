@@ -117,7 +117,9 @@ void AOrbitCharacter::MoveForward(float Value)
 	if (Value != 0.0f)
 	{
 		// add movement in that direction
+		
 		AddMovementInput(GetActorForwardVector(), Value);
+
 	}
 }
 

@@ -1,88 +1,88 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<ItemGroup>
-		<None Include="..\..\Orbit.uproject" />
-		<Filter Include="Source">
-			<UniqueIdentifier>{88257BD1-BBB3-47FC-8A6E-AB9EC8DC44F8}</UniqueIdentifier>
-		</Filter>
-		<None Include="..\..\Source\Orbit.Target.cs">
-			<Filter>Source</Filter>
-		</None >
-		<None Include="..\..\Source\OrbitEditor.Target.cs">
-			<Filter>Source</Filter>
-		</None >
-		<Filter Include="Config">
-			<UniqueIdentifier>{8CF17C28-79F4-46CD-B0F7-8EFB87F020DB}</UniqueIdentifier>
-		</Filter>
-		<None Include="..\..\Config\DefaultEditor.ini">
-			<Filter>Config</Filter>
-		</None >
-		<None Include="..\..\Config\DefaultEngine.ini">
-			<Filter>Config</Filter>
-		</None >
-		<None Include="..\..\Config\DefaultGame.ini">
-			<Filter>Config</Filter>
-		</None >
-		<None Include="..\..\Config\DefaultInput.ini">
-			<Filter>Config</Filter>
-		</None >
-		<Filter Include="Source\Orbit">
-			<UniqueIdentifier>{A663773F-432C-496A-95B1-3CC8C165CD2F}</UniqueIdentifier>
-		</Filter>
-		<None Include="..\..\Source\Orbit\Orbit.Build.cs">
-			<Filter>Source\Orbit</Filter>
-		</None >
-		<Filter Include="Source\Orbit\Private">
-			<UniqueIdentifier>{15F74D4B-06A8-4981-8443-B941801EC6FB}</UniqueIdentifier>
-		</Filter>
-		<ClCompile Include="..\..\Source\Orbit\Private\Orbit.cpp">
-			<Filter>Source\Orbit\Private</Filter>
-		</ClCompile >
-		<ClCompile Include="..\..\Source\Orbit\Private\OrbitCharacter.cpp">
-			<Filter>Source\Orbit\Private</Filter>
-		</ClCompile >
-		<ClCompile Include="..\..\Source\Orbit\Private\OrbitCharacterMovementComponent.cpp">
-			<Filter>Source\Orbit\Private</Filter>
-		</ClCompile >
-		<ClCompile Include="..\..\Source\Orbit\Private\OrbitGameMode.cpp">
-			<Filter>Source\Orbit\Private</Filter>
-		</ClCompile >
-		<ClCompile Include="..\..\Source\Orbit\Private\OrbitHUD.cpp">
-			<Filter>Source\Orbit\Private</Filter>
-		</ClCompile >
-		<ClCompile Include="..\..\Source\Orbit\Private\OrbitProjectile.cpp">
-			<Filter>Source\Orbit\Private</Filter>
-		</ClCompile >
-		<Filter Include="Source\Orbit\Public">
-			<UniqueIdentifier>{7CE1FA54-D3D3-496A-B1EB-C44DD0F293DE}</UniqueIdentifier>
-		</Filter>
-		<ClInclude Include="..\..\Source\Orbit\Public\Orbit.h">
-			<Filter>Source\Orbit\Public</Filter>
-		</ClInclude >
-		<ClInclude Include="..\..\Source\Orbit\Public\OrbitCharacter.h">
-			<Filter>Source\Orbit\Public</Filter>
-		</ClInclude >
-		<ClInclude Include="..\..\Source\Orbit\Public\OrbitCharacterMovementComponent.h">
-			<Filter>Source\Orbit\Public</Filter>
-		</ClInclude >
-		<ClInclude Include="..\..\Source\Orbit\Public\OrbitGameMode.h">
-			<Filter>Source\Orbit\Public</Filter>
-		</ClInclude >
-		<ClInclude Include="..\..\Source\Orbit\Public\OrbitHUD.h">
-			<Filter>Source\Orbit\Public</Filter>
-		</ClInclude >
-		<ClInclude Include="..\..\Source\Orbit\Public\OrbitProjectile.h">
-			<Filter>Source\Orbit\Public</Filter>
-		</ClInclude >
-		<Filter Include="Source\Orbit\Resources">
-			<UniqueIdentifier>{B5F62DB6-7CF0-4D80-8859-4BDE3E057BE5}</UniqueIdentifier>
-		</Filter>
-		<Filter Include="Source\Orbit\Resources\Windows">
-			<UniqueIdentifier>{DDC17A9B-795E-4D03-B669-E075F2BA3C0F}</UniqueIdentifier>
-		</Filter>
-		<ResourceCompile Include="..\..\Source\Orbit\Resources\Windows\Orbit.rc">
-			<Filter>Source\Orbit\Resources\Windows</Filter>
-		</ResourceCompile >
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Orbit.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{88257BD1-BBB3-47FC-8A6E-AB9EC8DC44F8}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Orbit.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\OrbitEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <Filter Include="Config">
+      <UniqueIdentifier>{8CF17C28-79F4-46CD-B0F7-8EFB87F020DB}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\Orbit">
+      <UniqueIdentifier>{A663773F-432C-496A-95B1-3CC8C165CD2F}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Orbit\Orbit.Build.cs">
+      <Filter>Source\Orbit</Filter>
+    </None>
+    <Filter Include="Source\Orbit\Private">
+      <UniqueIdentifier>{15F74D4B-06A8-4981-8443-B941801EC6FB}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Orbit\Private\Orbit.cpp">
+      <Filter>Source\Orbit\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Orbit\Private\OrbitCharacter.cpp">
+      <Filter>Source\Orbit\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Orbit\Private\OrbitCharacterMovementComponent.cpp">
+      <Filter>Source\Orbit\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Orbit\Private\OrbitGameMode.cpp">
+      <Filter>Source\Orbit\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Orbit\Private\OrbitHUD.cpp">
+      <Filter>Source\Orbit\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Orbit\Private\OrbitProjectile.cpp">
+      <Filter>Source\Orbit\Private</Filter>
+    </ClCompile>
+    <Filter Include="Source\Orbit\Public">
+      <UniqueIdentifier>{7CE1FA54-D3D3-496A-B1EB-C44DD0F293DE}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Orbit\Public\Orbit.h">
+      <Filter>Source\Orbit\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Orbit\Public\OrbitCharacter.h">
+      <Filter>Source\Orbit\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Orbit\Public\OrbitCharacterMovementComponent.h">
+      <Filter>Source\Orbit\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Orbit\Public\OrbitGameMode.h">
+      <Filter>Source\Orbit\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Orbit\Public\OrbitHUD.h">
+      <Filter>Source\Orbit\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Orbit\Public\OrbitProjectile.h">
+      <Filter>Source\Orbit\Public</Filter>
+    </ClInclude>
+    <Filter Include="Source\Orbit\Resources">
+      <UniqueIdentifier>{B5F62DB6-7CF0-4D80-8859-4BDE3E057BE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Orbit\Resources\Windows">
+      <UniqueIdentifier>{DDC17A9B-795E-4D03-B669-E075F2BA3C0F}</UniqueIdentifier>
+    </Filter>
+    <ResourceCompile Include="..\..\Source\Orbit\Resources\Windows\Orbit.rc">
+      <Filter>Source\Orbit\Resources\Windows</Filter>
+    </ResourceCompile>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
 </Project>

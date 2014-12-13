@@ -2,30 +2,25 @@
 
 #pragma once
 #include "Orbit.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "OrbitCharacterMovementComponent.generated.h"
-
 /**
-*  If you get a bunch of weird errors about physics and logging stuff, make sure Orbit.h includes Engine.h instead of EngineMinimal.h
  * 
  */
 UCLASS(config = Game)
 class ORBIT_API UOrbitCharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
-	
 public:
 	UOrbitCharacterMovementComponent(const class FObjectInitializer& PCIP);
 
-	FVector OldGravDir;
 	virtual bool DoJump(bool bReplayingMoves) override;
 	virtual float GetGravityZ() const override;
 	FVector GetGravityV() const;
 	FVector GetGravityDir() const;
-
+	
 	bool CheckLedgeDirection(const FVector& OldLocation, const FVector& SideStep, const FVector& GravDir);
 	FVector GetLedgeMove(const FVector& OldLocation, const FVector& Delta, const FVector& GravDir);
-
+	
 	virtual void MoveAlongFloor(const FVector& InVelocity, float DeltaSeconds, FStepDownResult* OutStepDownResult = NULL) override;
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
 	virtual void SimulateMovement(float DeltaSeconds) override;
@@ -49,24 +44,20 @@ public:
 
 
 protected:
-
+	
 	//Init
 	virtual void InitializeComponent() override;
 
 	//Tick
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
-	virtual void PerformMovement(float DeltaSeconds) override;
-	virtual void ApplyAccumulatedForces(float DeltaSeconds) override;
-	virtual void MaintainHorizontalGroundVelocity() override;
-	virtual void PhysicsRotation(float DeltaTime) override;//dead end
-	virtual void ApplyImpactPhysicsForces(const FHitResult& Impact, const FVector& ImpactAcceleration, const FVector& ImpactVelocity) override;
-	virtual void SmoothClientPosition(float DeltaSeconds) override;
 
-	virtual bool UOrbitCharacterMovementComponent::ApplyRequestedMove(float DeltaTime, float MaxAccel, float MaxSpeed, float Friction, float BrakingDeceleration, FVector& OutAcceleration, float& OutRequestedSpeed) override;
-	virtual	void UOrbitCharacterMovementComponent::RequestDirectMove(const FVector& MoveVelocity, bool bForceMaxSpeed) override;
-	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
-	virtual bool StepUp( const FVector& InGravDir, const FVector& Delta, const FHitResult &InHit, FStepDownResult* OutStepDownResult) override;
 
-	
+	/*
+	//Kerplunk
+	void PerformAirControl(FVector Direction, float ZDiff) override;
+	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
+	virtual bool IsWalkable(const FHitResult& Hit) const;
+	virtual void PhysicsRotation(float DeltaTime) override;
+	*/
 };
