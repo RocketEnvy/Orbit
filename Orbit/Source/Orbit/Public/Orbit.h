@@ -4,6 +4,13 @@
 #define __ORBIT_H__
 
 #include "Engine.h"
+//#include "EngineMinimal.h"
 
+/*
+FVector GetGravityDirection();
+void CalculateGravity();
 
+FVector GravityDirection, GravityDistanceVector, GravityVector;
+float GravityMagnitude, GravityDistance;
+*/
 #endif

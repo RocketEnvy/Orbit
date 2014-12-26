@@ -1,16 +1,19 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 #pragma once
+#include "Orbit.h"
 #include "GameFramework/Character.h"
 #include "OrbitCharacter.generated.h"
-
+#define VERSION27
 UCLASS(config=Game)
-class AOrbitCharacter : public ACharacter
+class ORBIT_API AOrbitCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
 	class USkeletalMeshComponent* Mesh1P;
+	class USkeletalMeshComponent* Boner;
+	class UOrbitCharacterMovementComponenent* OrbitMovementComponent;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -18,6 +21,7 @@ class AOrbitCharacter : public ACharacter
 public:
 	AOrbitCharacter(const FObjectInitializer& ObjectInitializer);
 
+	//virtual void K2_UpdateCustomMovement(float DeltaTime) override;
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -29,6 +33,9 @@ public:
 	/** Gun muzzle's offset from the characters location */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	FVector GunOffset;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=GamePlay)
+	bool bDoFreeLook;
 
 	/** Projectile class to spawn */
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
@@ -41,6 +48,8 @@ public:
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
+
+
 
 protected:
 
@@ -67,6 +76,9 @@ protected:
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
+
+	void Turn(float Rate);
+	void LookUp(float Rate);
 
 protected:
 	// APawn interface
