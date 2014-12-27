@@ -139,4 +139,6 @@ public:
 	virtual void UpdateBasedRotation(FRotator &FinalRotation, const FRotator& ReducedRotation) override;
 	virtual void UpdateBasedMovement(float DeltaSeconds) override;
 	virtual void UOrbitCharacterMovementComponent::TwoWallAdjust(FVector &Delta, const FHitResult& Hit, const FVector &OldHitNormal) const override;
+	virtual bool IsFalling() const override;
+	virtual void PerformMovement(float DeltaTime) override;
 };
