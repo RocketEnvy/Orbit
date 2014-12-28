@@ -73,7 +73,6 @@ void UOrbitCharacterMovementComponent::InitializeComponent()
 }
 void UOrbitCharacterMovementComponent::TickComponent( float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction )
 {
-UE_LOG(LogTemp, Warning, TEXT("%d %s:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"), __LINE__, __FUNCTIONW__); //hopping sometimes
 	Super::Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 
@@ -167,7 +166,6 @@ UE_LOG(LogTemp, Warning, TEXT("%d %s:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					//BaseComp->AddForceAtLocation(FVector(0.f, 0.f, GravZ * Mass * StandingDownwardForceScale), ForceLocation, CurrentFloor.HitResult.BoneName);
 					BaseComp->AddForceAtLocation(GravityVector * Mass * StandingDownwardForceScale, 
 						ForceLocation, CurrentFloor.HitResult.BoneName);
-	//UE_LOG(LogTemp, Warning, TEXT("%d FORCE Added!!! ForceLoc:%s"), __LINE__, *ForceLocation.ToString());
 				}
 			}
 		}
@@ -184,8 +182,13 @@ UE_LOG(LogTemp, Warning, TEXT("%d %s:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	CalculateGravity();//FIXME: probably won't have to do the complete calculation every tick
 	FRotator GravRot = GravityDirection.Rotation();
 	GravRot.Pitch += 120;//not sure why this correction is needed 
-	GetOwner()->SetActorRotation(GravRot);
+		checkf(!GravRot.ContainsNaN(), TEXT("Tick: GravRot contains NaN"));
+	//GetOwner()->SetActorRotation(GravRot * FMath::DegreesToRadians( YawSum) );//interesting
+
+	GetOwner()->SetActorRotation(GravRot  );
 	GetOwner()->AddActorLocalRotation(FRotator(0, YawSum, 0), true);
+
+	checkf(!GetOwner()->GetActorRotation().ContainsNaN(), TEXT("Tick: Actor Rotation contains NaN "));
 }
 	
 //yaw delta actually
@@ -209,8 +212,13 @@ void UOrbitCharacterMovementComponent::CalculateGravity()
 		GravityMagnitude = ((Mass * gravBodyMass) / FMath::Square(GravityDistance));
 		GravityVector = GravityDirection * GravityMagnitude;
 		//AddImpulse(GravityVector);
+		//AddForce(GravityVector);
 		AddForce(GravityVector);
-	//UE_LOG(LogTemp, Warning, TEXT("CalGrav:%d GDir:%s GM:%f GV:%s"), __LINE__,*GravityDirection.ToString(), GravityMagnitude, *GravityVector.ToString());
+		//GetActorFeetLocation();
+		//AddRadialForce(GetActorFeetLocation(), 50.f, 50.f, ERadialImpulseFalloff::RIF_Constant);
+		//UPrimitiveComponent* MutableThis = const_cast<UPrimitiveComponent*>( Get );
+		//MutableThis
+		
 }
 
 float UOrbitCharacterMovementComponent::GetGravityZ() const
@@ -360,18 +368,16 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 	{
 		Acceleration = FVector::ZeroVector;
 		Velocity = FVector::ZeroVector;
-		//UE_LOG(LogTemp, Warning, TEXT("%d Zeroed movement "), __LINE__);
 		return;
 	}
 
 	if (!UpdatedComponent->IsCollisionEnabled())
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		SetMovementMode(MOVE_Custom, CUSTOM_MoonWalking);//fart
 		return;
 	}
 
-	//checkf(!Velocity.ContainsNaN(), TEXT("PhysMoonWalking: Velocity contains NaN before Iteration (%s: %s)\n%s"), *GetPathNameSafe(this), *GetPathNameSafe(GetOuter()), *Velocity.ToString());
+	checkf(!Velocity.ContainsNaN(), TEXT("PhysMoonWalking: Velocity contains NaN before Iteration (%s: %s)\n%s"), *GetPathNameSafe(this), *GetPathNameSafe(GetOuter()), *Velocity.ToString());
 	
 	bJustTeleported = false;
 	bool bCheckedFall = false;
@@ -396,18 +402,18 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 		MaintainHorizontalGroundVelocity();
 		//Velocity.Z = 0.f;
 		//gdg
+		//RemoveVertical(Velocity);
 		const FVector OldVelocity = Velocity;
-		Velocity -= Velocity.ProjectOnTo(GravityVector);
 
 		// Apply acceleration
 		//Acceleration.Z = 0.f;
-		Acceleration -= Acceleration.ProjectOnTo(GravityVector);
+		//RemoveVertical(Acceleration);
 		//gdg
 		if( !HasRootMotion() )
 		{
 			CalcVelocity(timeTick, GroundFriction, false, BrakingDecelerationWalking);
 		}
-		//checkf(!Velocity.ContainsNaN(), TEXT("PhysMoonWalking: Velocity contains NaN after CalcVelocity (%s: %s)\n%s"), *GetPathNameSafe(this), *GetPathNameSafe(GetOuter()), *Velocity.ToString());
+		checkf(!Velocity.ContainsNaN(), TEXT("PhysMoonWalking: Velocity contains NaN after CalcVelocity (%s: %s)\n%s"), *GetPathNameSafe(this), *GetPathNameSafe(GetOuter()), *Velocity.ToString());
 
 		// Compute move parameters
 		const FVector MoveVelocity = Velocity;
@@ -426,24 +432,19 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 
 			if ( IsFalling() )
 			{
-			//UE_LOG(LogTemp, Warning, TEXT("%d DesiredDist"), __LINE__);
 				// pawn decided to jump up
 				const float DesiredDist = Delta.Size();
-			//UE_LOG(LogTemp, Warning, TEXT("%d DesiredDist:%f"), __LINE__, DesiredDist);
 				if (DesiredDist > KINDA_SMALL_NUMBER)
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					//@todo gdg
 					const float ActualDist = (CharacterOwner->GetActorLocation() - OldLocation).Size2D();
 					remainingTime += timeTick * (1.f - FMath::Min(1.f,ActualDist/DesiredDist));
 				}
 				StartNewPhysics(remainingTime, Iterations);
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				return;
 			}
 			else if ( IsSwimming() ) //just entered water
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				StartSwimming(OldLocation, OldVelocity, timeTick, remainingTime, Iterations);
 				return;
 			}
@@ -455,12 +456,10 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 		if (StepDownResult.bComputedFloor)
 		{
 			//like butter when it gets here
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: Skate"), __LINE__, __FUNCTIONW__);//Skating
 			CurrentFloor = StepDownResult.FloorResult;
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: Hop"), __LINE__, __FUNCTIONW__);//Hopping, sometimes skating too
 			
 			//can walk w/o crow hopping to south if this is commented out!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			//still have black holes at the poles.
@@ -471,15 +470,12 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 		const bool bCheckLedges = !CanWalkOffLedges();
 		if ( bCheckLedges && !CurrentFloor.IsWalkableFloor() )
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// calculate possible alternate movement
 			//const FVector GravDir = FVector(0.f,0.f,-1.f);
 			const FVector GravDir = GravityDirection;//gdg
-			//UE_LOG(LogTemp, Warning, TEXT("%d GravityDirection:%s"), __LINE__, *GravityDirection.ToString());
 			const FVector NewDelta = bTriedLedgeMove ? FVector::ZeroVector : GetLedgeMove(OldLocation, Delta, GravDir);
 			if ( !NewDelta.IsZero() )
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// first revert this move
 				RevertMove(OldLocation, OldBase, PreviousBaseLocation, OldFloor, false);
 
@@ -493,18 +489,15 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 			}
 			else
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// see if it is OK to jump
 				// @todo collision : only thing that can be problem is that oldbase has world collision on
 				bool bMustJump = bZeroDelta || (OldBase == NULL || (!OldBase->IsCollisionEnabled() && MovementBaseUtility::IsDynamicBase(OldBase)));
 				if ( (bMustJump || !bCheckedFall) && CheckFall(CurrentFloor.HitResult, Delta, OldLocation, remainingTime, timeTick, Iterations, bMustJump) )
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					return;
 				}
 				bCheckedFall = true;
 
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// revert this move
 				RevertMove(OldLocation, OldBase, PreviousBaseLocation, OldFloor, true);
 				remainingTime = 0.f;
@@ -514,33 +507,25 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 		}
 		else
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
-			//UE_LOG(LogTemp, Warning, TEXT("you don't have a boner, to penetrate surface"));
 			// Validate the floor check
 			if (CurrentFloor.IsWalkableFloor())
 			{
-//			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				if (ShouldCatchAir(OldFloor, CurrentFloor))
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					CharacterOwner->OnWalkingOffLedge();
 					if (IsMovingOnGround())
 					{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 						// If still walking, then fall. If not, assume the user set a different mode they want to keep.
 						StartFalling(Iterations, remainingTime, timeTick, Delta, OldLocation);//not problem
 					}
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					return;
 				}
 
-//			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				AdjustFloorHeight();
 				SetBase(CurrentFloor.HitResult.Component.Get(), CurrentFloor.HitResult.BoneName);
 			}
 			else if (CurrentFloor.HitResult.bStartPenetrating && remainingTime <= 0.f)
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// The floor check failed because it started in penetration
 				// We do not want to try to move downward because the downward sweep failed, rather we'd like to try to pop out of the floor.
 				FHitResult Hit(CurrentFloor.HitResult);
@@ -553,39 +538,32 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 			// check if just entered water
 			if ( IsSwimming() )
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				StartSwimming(OldLocation, Velocity, timeTick, remainingTime, Iterations);
 				return;
 			}
 			// See if we need to start falling.
 			if (!CurrentFloor.IsWalkableFloor() && !CurrentFloor.HitResult.bStartPenetrating)
 			{
-			//UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//hopping sometimes
+			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//hopping sometimes
 				const bool bMustJump = bJustTeleported || bZeroDelta || (OldBase == NULL || 
 					(!OldBase->IsCollisionEnabled() && MovementBaseUtility::IsDynamicBase(OldBase)));
 				if (
 					(bMustJump || !bCheckedFall) 
 					&& CheckFall(CurrentFloor.HitResult, Delta, OldLocation, remainingTime, timeTick, Iterations, bMustJump) 
 					) {
-			//UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__); //hopping sometimes
+			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__); //hopping sometimes
 					return;
 				}
 				bCheckedFall = true;
 			}
 		}
 
-		//GETS to here normally
-	//UE_LOG(LogTemp, Warning, TEXT("And the cow jumped over the Moon %d"), __LINE__);
-
 		// Allow overlap events and such to change physics state and velocity
 		if (IsMovingOnGround())
 		{
-//			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// Make velocity reflect actual move
 			if( !bJustTeleported && !HasRootMotion() && timeTick >= MIN_TICK_TIME)
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
-	//UE_LOG(LogTemp, Warning, TEXT("And the cow jumped over the Moon %d"), __LINE__);
 				Velocity = (CharacterOwner->GetActorLocation() - OldLocation) / timeTick;
 			}
 		}
@@ -593,7 +571,6 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 		// If we didn't move at all this iteration then abort (since future iterations will also be stuck).
 		if (CharacterOwner->GetActorLocation() == OldLocation)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//not moving
 			remainingTime = 0.f;
 			break;
 		}	
@@ -633,7 +610,7 @@ void UOrbitCharacterMovementComponent::AdjustFloorHeight()
 		//const float MoveDist = FMath::Abs(AvgFloorDist - OldFloorDist);//gdg
 		//SafeMoveUpdatedComponent( FVector(0.f,0.f,MoveDist), CharacterOwner->GetActorRotation(), true, AdjustHit );
 		SafeMoveUpdatedComponent( GravityDirection * MoveDist, CharacterOwner->GetActorRotation(), true, AdjustHit );//gdg
-		UE_LOG(LogTemp, VeryVerbose, TEXT("Adjust floor height %.3f (Hit = %d)"), MoveDist, AdjustHit.bBlockingHit);
+		UE_LOG(LogTemp, Warning, TEXT("Adjust floor height %.3f (Hit = %d)"), MoveDist, AdjustHit.bBlockingHit);
 
 		if (!AdjustHit.IsValidBlockingHit())
 		{
@@ -658,7 +635,6 @@ void UOrbitCharacterMovementComponent::AdjustFloorHeight()
 
 			if (IsWalkable(AdjustHit))
 			{
-			UE_LOG(LogTemp, Warning, TEXT("And the cow jumped over the Moon %d"), __LINE__);
 			CurrentFloor.SetFromSweep(AdjustHit, CurrentFloor.FloorDist, true);
 			}
 		}
@@ -739,7 +715,7 @@ void UOrbitCharacterMovementComponent::FindFloor(const FVector& CapsuleLocation,
 	}
 
 	// Increase height check slightly if walking, to prevent floor height adjustment from later invalidating the floor result.
-	const float HeightCheckAdjust = (IsMovingOnGround() ? MAX_FLOOR_DIST + KINDA_SMALL_NUMBER : -MAX_FLOOR_DIST);
+	const float HeightCheckAdjust = (IsMovingOnGround() ? MAX_FLOOR_DIST + KINDA_SMALL_NUMBER : -MAX_FLOOR_DIST );
 
 	float FloorSweepTraceDist = FMath::Max(MAX_FLOOR_DIST, MaxStepHeight + HeightCheckAdjust);
 	float FloorLineTraceDist = FloorSweepTraceDist;
@@ -756,11 +732,9 @@ void UOrbitCharacterMovementComponent::FindFloor(const FVector& CapsuleLocation,
 			MutableThis->bForceNextFloorCheck = false;
 			//get here a lot
 			ComputeFloorDist(CapsuleLocation, FloorLineTraceDist, FloorSweepTraceDist, OutFloorResult, CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius(), DownwardSweepResult);
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: bBlockingHit:%d"), __LINE__, __FUNCTIONW__, OutFloorResult.bBlockingHit);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// Force floor check if base has collision disabled or if it does not block us.
 			UPrimitiveComponent* MovementBase = CharacterOwner->GetMovementBase();
 			const AActor* BaseActor = MovementBase ? MovementBase->GetOwner() : NULL;
@@ -768,7 +742,6 @@ void UOrbitCharacterMovementComponent::FindFloor(const FVector& CapsuleLocation,
 
 			if (MovementBase != NULL)
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				MutableThis->bForceNextFloorCheck = !MovementBase->IsCollisionEnabled()
 				|| MovementBase->GetCollisionResponseToChannel(CollisionChannel) != ECR_Block
 				|| (MovementBase->Mobility == EComponentMobility::Movable)
@@ -780,13 +753,11 @@ void UOrbitCharacterMovementComponent::FindFloor(const FVector& CapsuleLocation,
 
 			if ( !bForceNextFloorCheck && !IsActorBasePendingKill && MovementBase )
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				OutFloorResult = CurrentFloor;
 				bNeedToValidateFloor = false;
 			}
 			else
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				MutableThis->bForceNextFloorCheck = false;
 				ComputeFloorDist(CapsuleLocation, FloorLineTraceDist, FloorSweepTraceDist, OutFloorResult, CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius(), DownwardSweepResult);
 			}
@@ -802,7 +773,6 @@ void UOrbitCharacterMovementComponent::FindFloor(const FVector& CapsuleLocation,
 		const bool bCheckRadius = true;
 		if (ShouldComputePerchResult(OutFloorResult.HitResult, bCheckRadius))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			float MaxPerchFloorDist = FMath::Max(MAX_FLOOR_DIST, MaxStepHeight + HeightCheckAdjust);
 			if (IsMovingOnGround())
 			{
@@ -812,29 +782,24 @@ void UOrbitCharacterMovementComponent::FindFloor(const FVector& CapsuleLocation,
 			FFindFloorResult PerchFloorResult;
 			if (ComputePerchResult(GetValidPerchRadius(), OutFloorResult.HitResult, MaxPerchFloorDist, PerchFloorResult))
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// Don't allow the floor distance adjustment to push us up too high, or we will move beyond the perch distance and fall next time.
 				const float AvgFloorDist = (MIN_FLOOR_DIST + MAX_FLOOR_DIST) * 0.5f;
 				const float MoveUpDist = (AvgFloorDist - OutFloorResult.FloorDist);
 				if (MoveUpDist + PerchFloorResult.FloorDist >= MaxPerchFloorDist)
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					OutFloorResult.FloorDist = AvgFloorDist;
 				}
 
 				// If the regular capsule is on an unwalkable surface but the perched one would allow us to stand, override the normal to be one that is walkable.
 				if (!OutFloorResult.bWalkableFloor)
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					OutFloorResult.SetFromLineTrace(PerchFloorResult.HitResult, OutFloorResult.FloorDist, FMath::Min(PerchFloorResult.FloorDist, PerchFloorResult.LineDist), true);
 				}
 			}
 			else
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// We had no floor (or an invalid one because it was unwalkable), and couldn't perch here, so invalidate floor (which will cause us to start falling).
 				OutFloorResult.bWalkableFloor = false;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s bWalkableFloor:%d"), __LINE__, __FUNCTIONW__, OutFloorResult.bWalkableFloor);
 			}
 		} 
 	}
@@ -848,7 +813,6 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 	// No collision, no floor...
 	if (!UpdatedComponent->IsCollisionEnabled())
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		return;
 	}
 
@@ -858,7 +822,6 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 	bool bSkipSweep = false;
 	if (DownwardSweepResult != NULL && DownwardSweepResult->IsValidBlockingHit())
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//here
 		// Only if the supplied sweep was vertical and downward.
 		/*
 		if ((DownwardSweepResult->TraceStart.Z > DownwardSweepResult->TraceEnd.Z) &&
@@ -867,11 +830,9 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 		if (( FVector::DotProduct(DownwardSweepResult->TraceStart, GravityDirection) > FVector::DotProduct(DownwardSweepResult->TraceEnd,GravityDirection)) &&
 			(DownwardSweepResult->TraceStart - DownwardSweepResult->TraceEnd).SizeSquared() <= KINDA_SMALL_NUMBER)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// Reject hits that are barely on the cusp of the radius of the capsule
 			if (IsWithinEdgeTolerance(DownwardSweepResult->Location, DownwardSweepResult->ImpactPoint, PawnRadius))
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// Don't try a redundant sweep, regardless of whether this sweep is usable.
 				bSkipSweep = true;
 
@@ -882,7 +843,6 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 				
 				if (bIsWalkable)
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					// Use the supplied downward sweep as the floor hit result.			
 					return;
 				}
@@ -893,7 +853,6 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 	// We require the sweep distance to be >= the line distance, otherwise the HitResult can't be interpreted as the sweep result.
 	if (SweepDistance < LineDistance)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		check(SweepDistance >= LineDistance);
 		return;
 	}
@@ -921,7 +880,6 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 
 		FHitResult Hit(1.f);
 		//bBlockingHit = FloorSweepTest(Hit, CapsuleLocation, CapsuleLocation + FVector(0.f,0.f,-TraceDist), CollisionChannel, CapsuleShape, QueryParams, ResponseParam);
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//here
 			//the 2.0* seems to eliminate crow hopping, still flying off at equator though
 			//FVector SecondPoint = CapsuleLocation + (2.0*TraceDist*GravityDirection);
 			FVector SecondPoint = CapsuleLocation + (TraceDist*GravityDirection);
@@ -929,12 +887,10 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 
 		if (bBlockingHit)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// Reject hits adjacent to us, we only care about hits on the bottom portion of our capsule.
 			// Check 2D distance to impact point, reject if within a tolerance from radius.
 			if (Hit.bStartPenetrating || !IsWithinEdgeTolerance(CapsuleLocation, Hit.ImpactPoint, CapsuleShape.Capsule.Radius))
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// Use a capsule with a slightly smaller radius and shorter height to avoid the adjacent object.
 				ShrinkHeight = (PawnHalfHeight - PawnRadius) * (1.f - ShrinkScaleOverlap);
 				TraceDist = SweepDistance + ShrinkHeight;
@@ -954,10 +910,8 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 			OutFloorResult.SetFromSweep(Hit, SweepResult, false);
 			if (Hit.IsValidBlockingHit() && IsWalkable(Hit))
 			{		
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				if (SweepResult <= SweepDistance)
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					// Hit within test distance.
 					OutFloorResult.bWalkableFloor = true;
 					return;
@@ -970,16 +924,13 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 	// We do however want to try a line trace if the sweep was stuck in penetration.
 	if (!OutFloorResult.bBlockingHit && !OutFloorResult.HitResult.bStartPenetrating)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: StartPenet:%d"), __LINE__, __FUNCTIONW__, OutFloorResult.HitResult.bStartPenetrating);
 		OutFloorResult.FloorDist = SweepDistance;
 		return;
 	}
 
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:LineDist:%f"), __LINE__, __FUNCTIONW__, LineDistance);//47.0
 	// Line trace
 	if (LineDistance > 0.f)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		const float ShrinkHeight = PawnHalfHeight;
 		const FVector LineTraceStart = CapsuleLocation;	
 		const float TraceDist = LineDistance + ShrinkHeight;
@@ -995,10 +946,8 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 
 		if (bBlockingHit)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			if (Hit.Time > 0.f)
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// Reduce hit distance by ShrinkHeight because we started the trace higher than the base.
 				// We allow negative distances here, because this allows us to pull out of penetrations.
 				const float MaxPenetrationAdjust = FMath::Max(MAX_FLOOR_DIST, PawnRadius);
@@ -1007,7 +956,6 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 				OutFloorResult.bBlockingHit = true;
 				if (LineResult <= LineDistance && IsWalkable(Hit))
 				{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 					OutFloorResult.SetFromLineTrace(Hit, OutFloorResult.FloorDist, LineResult, true);
 					return;
 				}
@@ -1026,8 +974,7 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 		if (bMaintainHorizontalGroundVelocity)
 		{
 			// Ramp movement already maintained the velocity, so we just want to remove the vertical component.
-			Velocity -= Velocity.ProjectOnTo( GravityVector );
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
+			RemoveVertical(Velocity, GravityVector);
 		}
 		else
 		{
@@ -1035,16 +982,10 @@ void UOrbitCharacterMovementComponent::ComputeFloorDist(const FVector& CapsuleLo
 			   In any case, it can make character move slowly and stiffly if not calculated right.
 			*/
 			// Rescale velocity to be horizontal but maintain magnitude of last update.
-			Velocity = Velocity.GetSafeNormal() * Velocity.Size();
 			//Velocity = Velocity.SafeNormal2D() * Velocity.Size(); //original
-			//not sure I grasp the intent here
-			//			Velocity -= Velocity.ProjectOnTo( GravityVector );
-			//	Velocity -= Velocity.ProjectOnTo( GravityDirection);
-			//Velocity *= Velocity * Velocity.ProjectOnTo(GravityVector).Size();
 			//	Velocity = Velocity.SafeNormal() * (Velocity.ProjectOnTo(GravityDirection).Size());
-			//Velocity = FVector::VectorPlaneProject( GravityDirection, Velocity);
-			//Velocity = Velocity.ProjectOnToNormal( GravityDirection);
 			//Velocity = Velocity.SafeNormal() * FVector::DotProduct(Velocity, GravityDirection);
+			RemoveVertical(Velocity);
 		}
 	}
 }
@@ -1056,7 +997,6 @@ bool UOrbitCharacterMovementComponent::DoJump(bool bReplayingMoves)
 		FVector js = -GravityDirection * JumpZVelocity; //gdg shouldn't that be speed?
 		// Don't jump if we can't move up/down.
 		//if (!bConstrainToPlane || FMath::Abs(PlaneConstraintNormal.Z) != 1.f)
-		//if (!bConstrainToPlane || FMath::Abs(PlaneConstraintNormal.ProjectOnTo(GravityDirection).Size()) != 1.f)
 		if (!bConstrainToPlane || FMath::Abs(FVector::DotProduct(PlaneConstraintNormal, GravityDirection)) != 1.f)
 		{
 		//	Velocity.Z = JumpZVelocity;
@@ -1207,7 +1147,7 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 
 	FVector FallAcceleration = GetFallingLateralAcceleration(deltaTime);
 	//FallAcceleration.Z = 0.f;
-	FallAcceleration -= FallAcceleration.ProjectOnTo(GravityDirection);//gdg
+	RemoveVertical(FallAcceleration);
 	//const bool bHasAirControl = (FallAcceleration.SizeSquared2D() > 0.f);
 	const bool bHasAirControl = (FallAcceleration.SizeSquared() > 0.f);
 
@@ -1219,7 +1159,9 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 		remainingTime -= timeTick;
 		
 		const FVector OldLocation = CharacterOwner->GetActorLocation();
-		const FRotator PawnRotation = CharacterOwner->GetActorRotation();
+		
+		const FRotator PawnRotation = CharacterOwner->GetActorRotation() + GravityDirection.Rotation();
+		//GetActorFeetLocation();
 		bJustTeleported = false;
 
 		FVector OldVelocity = Velocity;
@@ -1235,10 +1177,9 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 				TGuardValue<FVector> RestoreAcceleration(Acceleration, FVector::ZeroVector);
 				TGuardValue<FVector> RestoreVelocity(Velocity, Velocity);
 				//Velocity.Z = 0.f;
-				Velocity = Velocity - Velocity.ProjectOnTo(GravityVector);
+				RemoveVertical(Velocity,GravityVector);
 				CalcVelocity(timeTick, FallingLateralFriction, false, BrakingDecelerationFalling);
 				//VelocityNoAirControl = FVector(Velocity.X, Velocity.Y, OldVelocity.Z);
-				//VelocityNoAirControl = Velocity - (GravityDirection.ProjectOnTo(OldVelocity));//gdg
 				VelocityNoAirControl = Velocity - OldVelocity.ProjectOnTo(GravityVector);//gdg
 			}
 
@@ -1247,7 +1188,6 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 				// Acceleration = FallAcceleration for CalcVelocity(), but we restore it after using it.
 				TGuardValue<FVector> RestoreAcceleration(Acceleration, FallAcceleration);
 				//Velocity.Z = 0.f;
-				//Velocity = Velocity - (GravityDirection.ProjectOnTo(OldVelocity));//gdg
 				Velocity = Velocity - (OldVelocity.ProjectOnTo(GravityVector));//gdg
 				CalcVelocity(timeTick, FallingLateralFriction, false, BrakingDecelerationFalling);
 				//Velocity.Z = OldVelocity.Z;
@@ -1272,7 +1212,6 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 		const FVector AirControlAccel = (Velocity - VelocityNoAirControl) / timeTick;
 
 		//if( bNotifyApex && CharacterOwner->Controller && (Velocity.Z <= 0.f) )
-		//if( bNotifyApex && CharacterOwner->Controller && ((GravityDirection.ProjectOnTo(Velocity)).Size() <= 0.f) )
 		if( bNotifyApex && CharacterOwner->Controller && (FVector::DotProduct(GravityDirection, Velocity) <= 0.f) )
 		{
 			// Just passed jump apex since now going down
@@ -1301,11 +1240,9 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 		}
 		else if ( Hit.bBlockingHit )
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//this
 			if (IsValidLandingSpot(UpdatedComponent->GetComponentLocation(), Hit))
 			{
 				remainingTime += subTimeTickRemaining;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				ProcessLanded(Hit, remainingTime, Iterations);
 				return;
 			}
@@ -1328,7 +1265,6 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 					if (FloorResult.IsWalkableFloor() && IsValidLandingSpot(PawnLocation, FloorResult.HitResult))
 					{
 						remainingTime += subTimeTickRemaining;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 						ProcessLanded(FloorResult.HitResult, remainingTime, Iterations);
 						return;
 					}
@@ -1377,7 +1313,6 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 						if (IsValidLandingSpot(UpdatedComponent->GetComponentLocation(), Hit))
 						{
 							remainingTime += subTimeTickRemaining;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 							ProcessLanded(Hit, remainingTime, Iterations);
 							return;
 						}
@@ -1426,11 +1361,6 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 
 						// bDitch=true means that pawn is straddling two slopes, neither of which he can stand on
 						//bool bDitch = ( (OldHitImpactNormal.Z > 0.f) && (Hit.ImpactNormal.Z > 0.f) && (FMath::Abs(Delta.Z) <= KINDA_SMALL_NUMBER) && ((Hit.ImpactNormal | OldHitImpactNormal) < 0.f) );
-						/*bool bDitch = ( (OldHitImpactNormal.ProjectOnTo(GravityDirection).Size() > 0.f) && 
-							(Hit.ImpactNormal.ProjectOnTo(GravityDirection).Size() > 0.f) && 
-							(FMath::Abs(Delta.ProjectOnTo(GravityDirection).Size()) <= KINDA_SMALL_NUMBER) && 
-							((Hit.ImpactNormal | OldHitImpactNormal) < 0.f) );//gdg
-						*/
 						bool bDitch = ( FVector::DotProduct(OldHitImpactNormal,GravityDirection) > 0.f) && 
 							(FVector::DotProduct(Hit.ImpactNormal,GravityDirection) > 0.f) && 
 							(FMath::Abs(FVector::DotProduct(Delta, GravityDirection) <= KINDA_SMALL_NUMBER) && 
@@ -1458,19 +1388,15 @@ void UOrbitCharacterMovementComponent::PhysFalling(float deltaTime, int32 Iterat
 						if ( bDitch || IsValidLandingSpot(UpdatedComponent->GetComponentLocation(), Hit) || Hit.Time == 0  )
 						{
 							remainingTime = 0.f;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 							ProcessLanded(Hit, remainingTime, Iterations);
 							return;
 						}
 						//else if (GetPerchRadiusThreshold() > 0.f && Hit.Time == 1.f && OldHitImpactNormal.Z >= GetWalkableFloorZ())
-						//else if (GetPerchRadiusThreshold() > 0.f && Hit.Time == 1.f && 
-						//	OldHitImpactNormal.ProjectOnTo(GravityDirection).Size() >= GravityDirection.Size())//gdg???
 						else if (GetPerchRadiusThreshold() > 0.f && Hit.Time == 1.f && FVector::DotProduct(OldHitImpactNormal,GravityDirection) >= GetWalkableFloorZ())
 						{
 							// We might be in a virtual 'ditch' within our perch radius. This is rare.
 							const FVector PawnLocation = CharacterOwner->GetActorLocation();
 							//const float ZMovedDist = FMath::Abs(PawnLocation.Z - OldLocation.Z);
-							//const float ZMovedDist = FMath::Abs( (PawnLocation.ProjectOnTo(GravityDirection) - OldLocation.ProjectOnTo(GravityDirection)).Size());
 							const float ZMovedDist = (PawnLocation - OldLocation).Size();
 							//const float MovedDist2DSq = (PawnLocation - OldLocation).SizeSquared2D();
 							const float MovedDist2DSq = (PawnLocation - OldLocation).SizeSquared();
@@ -1514,14 +1440,11 @@ bool UOrbitCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& D
 	// Handle initial penetrations
 	if (OutHit.bStartPenetrating && UpdatedComponent)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//!!!
 		const FVector RequestedAdjustment = GetPenetrationAdjustment(OutHit);
 		if (ResolvePenetration(RequestedAdjustment, OutHit, NewRotation))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);//!!!
 			// Retry original move
 			bMoveResult = MoveUpdatedComponent(Delta, NewRotation, bSweep, &OutHit);
-		UE_LOG(LogTemp, Warning, TEXT("%d SafeMove, bMoveResult:%d"), __LINE__, bMoveResult );
 		}
 	}
 
@@ -1529,7 +1452,6 @@ bool UOrbitCharacterMovementComponent::SafeMoveUpdatedComponent(const FVector& D
 }
 void UOrbitCharacterMovementComponent::StartFalling(int32 Iterations, float remainingTime, float timeTick, const FVector& Delta, const FVector& subLoc)
 {
-		UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 	/*
 	Don't have source compiled to know where this is actually being called
 	but might not matter since it seems the landing is that bad part.
@@ -1542,8 +1464,7 @@ void UOrbitCharacterMovementComponent::StartFalling(int32 Iterations, float rema
 					: remainingTime + timeTick * (1.f - FMath::Min(1.f,ActualDist/DesiredDist));
 
 	//Velocity.Z = 0.f;			
-	//gdg
-	Velocity = Velocity - Velocity.ProjectOnTo(GravityDirection);
+	RemoveVertical(Velocity);
 	if ( IsMovingOnGround() )
 	{
 		// This is to catch cases where the first frame of PIE is executed, and the
@@ -1563,7 +1484,6 @@ void UOrbitCharacterMovementComponent::StartFalling(int32 Iterations, float rema
 }
 void UOrbitCharacterMovementComponent::ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations)
 {
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 	if( CharacterOwner && CharacterOwner->ShouldNotifyLanded(Hit) )
 	{
 		CharacterOwner->Landed(Hit);
@@ -1635,11 +1555,6 @@ bool UOrbitCharacterMovementComponent::FloorSweepTest(
 	const struct FCollisionResponseParams& ResponseParam
 	) const
 {
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: dist:%f, Start:%s, End:%s, Diff:%s, Rot:%s"), 
-				__LINE__, __FUNCTIONW__,FVector::Dist(Start,End), 
-				*Start.ToString(), *End.ToString(), *(Start- End).ToString(),
-				*GetOwner()->GetActorRotation().ToString());
-			//there isn't much change above when going to falling
 	bool bBlockingHit = false;
 
 	if (!bUseFlatBaseForFloorChecks)
@@ -1648,12 +1563,9 @@ bool UOrbitCharacterMovementComponent::FloorSweepTest(
 		//And unless I jump in southern hemisphere which will cause sliding. Didn't I somewhere
 		//double sweep radius?
 		bBlockingHit = GetWorld()->SweepSingle(OutHit, Start, End/2.f, GetOwner()->GetActorRotation().Quaternion(), TraceChannel, CollisionShape, Params, ResponseParam);//gdg
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: blocking hit?:%d OutValid:%d"),
-				__LINE__, __FUNCTIONW__, bBlockingHit, OutHit.IsValidBlockingHit());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%d FloorSweepTest, Use flat base for floor checks"),__LINE__);
 		// Test with a box that is enclosed by the capsule.
 		const float CapsuleRadius = CollisionShape.GetCapsuleRadius();
 		const float CapsuleHeight = CollisionShape.GetCapsuleHalfHeight();
@@ -1662,16 +1574,12 @@ bool UOrbitCharacterMovementComponent::FloorSweepTest(
 		// First test with the box rotated so the corners are along the major axes (ie rotated 45 degrees).
 		//bBlockingHit = GetWorld()->SweepSingle(OutHit, Start, End, FQuat(FVector(0.f, 0.f, -1.f), PI * 0.25f), TraceChannel, BoxShape, Params, ResponseParam);
 		bBlockingHit = GetWorld()->SweepSingle(OutHit, Start, End, GetPawnOwner()->GetActorRotation().Add(0,45,0).Quaternion(), TraceChannel, BoxShape, Params, ResponseParam);
-			UE_LOG(LogTemp, Warning, TEXT("%d %s bBlockingHit:%d"), __LINE__, __FUNCTIONW__, bBlockingHit);
 
 		if (!bBlockingHit)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("%d FloorSweepTest, NOT a blocking hit, trying again"),__LINE__);
 			// Test again with the same box, not rotated.
 			OutHit.Reset(1.f, false);			
-			//bBlockingHit = GetWorld()->SweepSingle(OutHit, Start, End, FQuat::Identity, TraceChannel, BoxShape, Params, ResponseParam);
 			bBlockingHit = GetWorld()->SweepSingle(OutHit, Start, End, FQuat::Identity, TraceChannel, BoxShape, Params, ResponseParam);
-			UE_LOG(LogTemp, Warning, TEXT("%d %s bBlockingHit:%d"), __LINE__, __FUNCTIONW__, bBlockingHit);
 		}
 	}
 
@@ -1698,13 +1606,11 @@ bool UOrbitCharacterMovementComponent::CanStepUp(const FHitResult& Hit) const
 	const UPrimitiveComponent* HitComponent = Hit.Component.Get();
 	if (!HitComponent)
 	{
-	UE_LOG(LogTemp, Warning, TEXT("%d CanStepUP"), __LINE__);
 		return true;
 	}
 
 	if (!HitComponent->CanCharacterStepUp(CharacterOwner))
 	{
-	UE_LOG(LogTemp, Warning, TEXT("%d CanStepUP"), __LINE__);
 		return false;
 	}
 
@@ -1712,13 +1618,11 @@ bool UOrbitCharacterMovementComponent::CanStepUp(const FHitResult& Hit) const
 	const AActor* HitActor = Hit.GetActor();
 	if (!HitActor)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		 return true;
 	}
 
 	if (!HitActor->CanBeBaseForCharacter(CharacterOwner))
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		return false;
 	}
 
@@ -1739,13 +1643,11 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 
 	if (!CanStepUp(InHit))	  
 	{
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 		return false;
 	}
 
 	if (MaxStepHeight <= 0.f)
 	{
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 		return false;
 	}
 
@@ -1757,16 +1659,13 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 	//const float InitialImpactZ = InHit.ImpactPoint.Z;
 	//gdg really uncertain here
 	//if (InitialImpactZ > OldLocation.Z + (PawnHalfHeight - PawnRadius))
-	//if (InHit.ImpactPoint.ProjectOnTo(GravityDirection).Size() > OldLocation.ProjectOnTo(GravityDirection).Size() + (PawnHalfHeight - PawnRadius))//gdg
 	if ( FVector::DotProduct(InHit.ImpactPoint,GravityDirection) > FVector::DotProduct(OldLocation,GravityDirection) + (PawnHalfHeight - PawnRadius))
 	{
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 		return false;
 	}
 
 	// Don't step up if the impact is below us
 	//if (InitialImpactZ <= OldLocation.Z - PawnHalfHeight)
-	//if (InHit.ImpactPoint.ProjectOnTo(GravityDirection).Size() <= OldLocation.ProjectOnTo(GravityDirection).Size() - PawnHalfHeight)//gdg
 	if ( FVector::DotProduct(InHit.ImpactPoint,GravityDirection) <= FVector::DotProduct(OldLocation, GravityDirection) - PawnHalfHeight)//gdg
 	{
 		return false;
@@ -1775,24 +1674,18 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 	const FVector GravDir = InGravDir.GetSafeNormal();
 	if (GravDir.IsZero())
 	{
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 		return false;
 	}
 	float StepTravelUpHeight = MaxStepHeight;
 	float StepTravelDownHeight = StepTravelUpHeight;
 	const float StepSideZ = -1.f * (InHit.ImpactNormal | GravDir);
-	//float PawnInitialFloorBaseZ = OldLocation.Z - PawnHalfHeight;
-	float PawnInitialFloorBaseZ = FVector::DotProduct(OldLocation, GravityDirection) - PawnHalfHeight;
-	//float PawnInitialFloorBase = OldLocation.ProjectOnTo(GravityDirection).Size() - PawnHalfHeight;//gdg
 	float PawnInitialFloorBase = FVector::DotProduct(OldLocation,GravityDirection)- PawnHalfHeight;//gdg
-	float PawnFloorPointZ = PawnInitialFloorBaseZ;
 	float PawnFloorPoint = PawnInitialFloorBase;//gdg
 
 	if (IsMovingOnGround() && CurrentFloor.IsWalkableFloor())
 	{
 		// Since we float a variable amount off the floor, we need to enforce max step height off the actual point of impact with the floor.
 		const float FloorDist = FMath::Max(0.f, CurrentFloor.FloorDist);
-		PawnInitialFloorBaseZ -= FloorDist;
 		PawnInitialFloorBase -= FloorDist;//gdg
 		StepTravelUpHeight = FMath::Max(StepTravelUpHeight - FloorDist, 0.f);
 		StepTravelDownHeight = (MaxStepHeight + MAX_FLOOR_DIST*2.f);
@@ -1801,15 +1694,11 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 		if (!CurrentFloor.bLineTrace && !bHitVerticalFace)
 		{
 			//PawnFloorPointZ = CurrentFloor.HitResult.ImpactPoint.Z;
-			PawnFloorPointZ = FVector::DotProduct(CurrentFloor.HitResult.ImpactPoint, GravityDirection);
-			//PawnFloorPoint = CurrentFloor.HitResult.ImpactPoint.Z;//gdg
 			PawnFloorPoint = FVector::DotProduct(CurrentFloor.HitResult.ImpactPoint, GravityDirection);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// Base floor point is the base of the capsule moved down by how far we are hovering over the surface we are hitting.
-			PawnFloorPointZ -= CurrentFloor.FloorDist;
 			PawnFloorPoint -= CurrentFloor.FloorDist;//gdg
 		}
 	}
@@ -1838,10 +1727,8 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 	// Check result of forward movement
 	if (Hit.bBlockingHit)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		if (Hit.bStartPenetrating)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// Undo movement
 			ScopedStepUpMovement.RevertMove();
 			return false;
@@ -1852,7 +1739,6 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 		HandleImpact(Hit, 0.f, FVector::ZeroVector);//gdg
 		if ( IsFalling() )
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			return true;
 		}
 
@@ -1862,7 +1748,6 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 		
 		if (IsFalling())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			ScopedStepUpMovement.RevertMove();
 			return false;
 		}
@@ -1871,7 +1756,6 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 		if (ForwardHitTime == 0.f && ForwardSlideAmount == 0.f)
 		{
 			ScopedStepUpMovement.RevertMove();
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 			return false;
 		}
 	}
@@ -1883,7 +1767,6 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 	if (Hit.bStartPenetrating)
 	{
 		ScopedStepUpMovement.RevertMove();
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 		return false;
 	}																				 
 
@@ -1892,11 +1775,9 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 	{	
 		// See if this step sequence would have allowed us to travel higher than our max step height allows.
 		//const float DeltaZ = Hit.ImpactPoint.Z - PawnFloorPointZ;
-		//const float DeltaZ = Hit.ImpactPoint.ProjectOnTo(GravityDirection).Size() - PawnFloorPoint;
-		const float DeltaZ = FVector::DotProduct(Hit.ImpactPoint, GravityDirection) - PawnFloorPointZ;
+		const float DeltaZ = FVector::DotProduct(Hit.ImpactPoint, GravityDirection) - PawnFloorPoint;
 		if (DeltaZ > MaxStepHeight)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			ScopedStepUpMovement.RevertMove();
 			return false;
 		}
@@ -1904,23 +1785,20 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 		// Reject unwalkable surface normals here.
 		if (!IsWalkable(Hit))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			// Reject if normal opposes movement direction
 			const bool bNormalTowardsMe = (Delta | Hit.ImpactNormal) < 0.f;
 			if (bNormalTowardsMe)
 			{
-				UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (unwalkable normal %s opposed to movement)"), *Hit.ImpactNormal.ToString());
+				UE_LOG(LogCharacterMovement, Warning, TEXT("- Reject StepUp (unwalkable normal %s opposed to movement)"), *Hit.ImpactNormal.ToString());
 				ScopedStepUpMovement.RevertMove();
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 				return false;
 			}
 
 			// Also reject if we would end up being higher than our starting location by stepping down.
 			// It's fine to step down onto an unwalkable normal below us, we will just slide off. Rejecting those moves would prevent us from being able to walk off the edge.
-			//if (Hit.Location.ProjectOnTo(GravityDirection).Size() > OldLocation.ProjectOnTo(GravityDirection).Size())//gdg
 			if ( FVector::DotProduct(Hit.Location, GravityDirection) > FVector::DotProduct(OldLocation, GravityDirection))//gdg
 			{
-				UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (unwalkable normal %s above old position)"), *Hit.ImpactNormal.ToString());
+				UE_LOG(LogCharacterMovement, Warning, TEXT("- Reject StepUp (unwalkable normal %s above old position)"), *Hit.ImpactNormal.ToString());
 				ScopedStepUpMovement.RevertMove();
 				return false;
 			}
@@ -1929,16 +1807,15 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 		// Reject moves where the downward sweep hit something very close to the edge of the capsule. This maintains consistency with FindFloor as well.
 		if (!IsWithinEdgeTolerance(Hit.Location, Hit.ImpactPoint, PawnRadius))
 		{
-			UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (outside edge tolerance)"));
+			UE_LOG(LogCharacterMovement, Warning, TEXT("- Reject StepUp (outside edge tolerance)"));
 			ScopedStepUpMovement.RevertMove();
-	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 			return false;
 		}
 
 		// Don't step up onto invalid surfaces if traveling higher.
 		if (DeltaZ > 0.f && !CanStepUp(Hit))
 		{
-			UE_LOG(LogCharacterMovement, VeryVerbose, TEXT("- Reject StepUp (up onto surface with !CanStepUp())"));
+			UE_LOG(LogCharacterMovement, Warning, TEXT("- Reject StepUp (up onto surface with !CanStepUp())"));
 			ScopedStepUpMovement.RevertMove();
 	UE_LOG(LogTemp, Warning, TEXT("%d Can't step up"), __LINE__);
 			return false;
@@ -1947,16 +1824,13 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 		// See if we can validate the floor as a result of this step down. In almost all cases this should succeed, and we can avoid computing the floor outside this method.
 		if (OutStepDownResult != NULL)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			FindFloor(UpdatedComponent->GetComponentLocation(), StepDownResult.FloorResult, false, &Hit);
 
 			// Reject unwalkable normals if we end up higher than our initial height.
 			// It's fine to walk down onto an unwalkable surface, don't reject those moves.
 			//if (Hit.Location.Z > OldLocation.Z)
-			//if (Hit.Location.ProjectOnTo(GravityDirection).Size() > OldLocation.ProjectOnTo(GravityDirection).Size())//gdg
 			if (FVector::DotProduct(Hit.Location,GravityDirection) > FVector::DotProduct(OldLocation,GravityDirection))
 			{
-			//UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 				// We should reject the floor result if we are trying to step up an actual step where we are not able to perch (this is rare).
 				// In those cases we should instead abort the step up and try to slide along the stair.
 				if (!StepDownResult.FloorResult.bBlockingHit && StepSideZ < MAX_STEP_SIDE_Z)
@@ -1967,7 +1841,6 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 				}
 			}
 
-			//UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 			StepDownResult.bComputedFloor = true;
 		}
 	}
@@ -1975,14 +1848,12 @@ bool UOrbitCharacterMovementComponent::StepUp(const FVector& InGravDir, const FV
 	// Copy step down result.
 	if (OutStepDownResult != NULL)
 	{
-		//	UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		*OutStepDownResult = StepDownResult;
 	}
 
 	// Don't recalculate velocity based on this height adjustment, if considering vertical adjustments.
 	bJustTeleported |= !bMaintainHorizontalGroundVelocity;
 
-		//	UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 	return true;
 }
 
@@ -1991,7 +1862,6 @@ bool UOrbitCharacterMovementComponent::ShouldCheckForValidLandingSpot(float Delt
 	// See if we hit an edge of a surface on the lower portion of the capsule.
 	// In this case the normal will not equal the impact normal, and a downward sweep may find a walkable surface on top of the edge.
 	//if (Hit.Normal.Z > KINDA_SMALL_NUMBER && !Hit.Normal.Equals(Hit.ImpactNormal))
-	//if (Hit.Normal.ProjectOnTo(GravityDirection).Size() > KINDA_SMALL_NUMBER && !Hit.Normal.Equals(Hit.ImpactNormal))
 	if (FVector::DotProduct(Hit.Normal, GravityDirection) > KINDA_SMALL_NUMBER && !Hit.Normal.Equals(Hit.ImpactNormal))
 	{
 		const FVector PawnLocation = UpdatedComponent->GetComponentLocation();
@@ -2017,8 +1887,6 @@ bool UOrbitCharacterMovementComponent::ComputePerchResult(const float TestRadius
 	CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleSize(PawnRadius, PawnHalfHeight);
 
 	//const float InHitAboveBase = FMath::Max(0.f, InHit.ImpactPoint.Z - (InHit.Location.Z - PawnHalfHeight));
-//	const float InHitAboveBase = FMath::Max(0.f, InHit.ImpactPoint.ProjectOnTo(GravityDirection).Size() - 
-//		(InHit.Location.ProjectOnTo(GravityDirection).Size() - PawnHalfHeight));
 	const float InHitAboveBase = FMath::Max(0.f, FVector::DotProduct(InHit.ImpactPoint,GravityDirection) - 
 		(FVector::DotProduct(InHit.Location,GravityDirection) - PawnHalfHeight));
 
@@ -2037,7 +1905,6 @@ bool UOrbitCharacterMovementComponent::ComputePerchResult(const float TestRadius
 	{
 		// Hit something past max distance
 		OutPerchFloorResult.bWalkableFloor = false;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s bWalkableFloor:%d"), __LINE__, __FUNCTIONW__, OutPerchFloorResult.bWalkableFloor);
 		return false;
 	}
 
@@ -2081,12 +1948,8 @@ FVector UOrbitCharacterMovementComponent::ConstrainInputAcceleration(const FVect
 	{
 		// This definately had something to do with sticking at equator
 		//	NewAccel.Z = 0.f;
-		//	NewAccel.Z = Acceleration.Z;//can't cross and bounces
-		//gdg
-		UE_LOG(LogTemp, Warning, TEXT("%d %s: IsMovingOnGround:%d or IsFalling:%d"), __LINE__, __FUNCTIONW__, IsMovingOnGround(), IsFalling() );
-		NewAccel = NewAccel - NewAccel.ProjectOnTo(GravityDirection);
+		NewAccel = NewAccel - NewAccel.ProjectOnTo(GravityVector);
 //		NewAccel = NewAccel - NewAccel.VectorPlaneProject(GravityDirection, NewAccel);//seems smoother, but is it right?
-//		NewAccel = NewAccel - GravityDirection.ProjectOnTo(NewAccel);//assert fails and crashes
 	}
 
 	return NewAccel;
@@ -2318,7 +2181,6 @@ void UOrbitCharacterMovementComponent::ApplyRepulsionForce(float DeltaSeconds)
 
 			if (BodyLocation.SizeSquared() > 0.1f && bHasHit && DistanceNow < StopBodyDistance && !bIsPenetrating)
 			{
-	UE_LOG(LogTemp, Warning, TEXT("ApplyRepulsionForce"));
 				OverlapBody->SetLinearVelocity(FVector(0.0f, 0.0f, 0.0f), false);
 			}
 			else if (DistanceLater <= DistanceNow || bIsPenetrating)
@@ -2367,8 +2229,8 @@ void UOrbitCharacterMovementComponent::PhysicsVolumeChanged( APhysicsVolume* New
 		SetMovementMode(MOVE_Falling);
 		FVector JumpDir(0.f);
 		FVector WallNormal(0.f);
+		//This looks fishy to me
 		//if ( Acceleration.Z > 0.f && ShouldJumpOutOfWater(JumpDir)
-		//if ( Acceleration.ProjectOnTo(GravityDirection).Size() > 0.f && ShouldJumpOutOfWater(JumpDir)//gdg
 		if ( FVector::DotProduct(Acceleration, GravityDirection) > 0.f && ShouldJumpOutOfWater(JumpDir)
 			&& ((JumpDir | Acceleration) > 0.f) && CheckWaterJump(JumpDir, WallNormal) ) 
 		{
@@ -2386,7 +2248,6 @@ bool UOrbitCharacterMovementComponent::ShouldJumpOutOfWater(FVector& JumpDir)
 	{
 		const FRotator ControllerRot = OwnerController->GetControlRotation();
 		//if ( (Velocity.Z > 0.0f) && (ControllerRot.Pitch > JumpOutOfWaterPitch) )
-		//if ( (Velocity.ProjectOnTo(GravityDirection).Size() > 0.0f) && (ControllerRot.Pitch > JumpOutOfWaterPitch) )
 		if( (FVector::DotProduct(Velocity, GravityDirection) > 0.0f) && (ControllerRot.Pitch > JumpOutOfWaterPitch) )
 			
 		{
@@ -2442,7 +2303,6 @@ void UOrbitCharacterMovementComponent::MoveSmooth(const FVector& InVelocity, con
 				{
 					OutStepDownResult = NULL; // No need for a floor when not walking.
 					//if (FMath::Abs(Hit.ImpactNormal.Z) < 0.2f)
-					//if (FMath::Abs(Hit.ImpactNormal.ProjectOnTo(GravityDirection).Size()) < 0.2f)
 					if (FMath::Abs( FVector::DotProduct(Hit.ImpactNormal, GravityDirection)) < 0.2f)
 					{
 						//const FVector GravDir = FVector(0.f,0.f,-1.f);
@@ -2533,7 +2393,6 @@ void UOrbitCharacterMovementComponent::MoveAlongFloor(const FVector& InVelocity,
 	
 	if (Hit.bStartPenetrating)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		OnCharacterStuckInGeometry();
 	}
 
@@ -2542,7 +2401,6 @@ void UOrbitCharacterMovementComponent::MoveAlongFloor(const FVector& InVelocity,
 		// We impacted something (most likely another ramp, but possibly a barrier).
 		float PercentTimeApplied = Hit.Time;
 		//if ((Hit.Time > 0.f) && (Hit.Normal.Z > KINDA_SMALL_NUMBER) && IsWalkable(Hit))
-		//if ((Hit.Time > 0.f) && (Hit.Normal.ProjectOnTo(GravityDirection).Size() > KINDA_SMALL_NUMBER) && IsWalkable(Hit))
 		if ((Hit.Time > 0.f) && (FVector::DotProduct(Hit.Normal,GravityDirection) > KINDA_SMALL_NUMBER) && IsWalkable(Hit))
 		{
 			// Another walkable ramp.
@@ -2562,14 +2420,15 @@ void UOrbitCharacterMovementComponent::MoveAlongFloor(const FVector& InVelocity,
 			{
 				// hit a barrier, try to step up
 				//const FVector GravDir(0.f, 0.f, -1.f);
-				const FVector GravDir = -GravityDirection;
+				//const FVector GravDir = GravityDirection;
+				const FVector GravDir = GravityVector;
 				if (!StepUp(GravDir, Delta * (1.f - PercentTimeApplied), Hit, OutStepDownResult))
 				{
 					UE_LOG(LogCharacterMovement, Warning, TEXT("- StepUp (ImpactNormal %s, Normal %s"), *Hit.ImpactNormal.ToString(), *Hit.Normal.ToString());
 					HandleImpact(Hit, LastMoveTimeSlice, RampVector);
+					//get blocked by my luna
 					SlideAlongSurface(Delta, 1.f - PercentTimeApplied, Hit.Normal, Hit, true);
 					//SlideAlongSurface(Delta, 1.f - PercentTimeApplied, Hit.Normal, Hit, false);//gdg
-//:SlideAlongSurface(const FVector& Delta, float Time, const FVector& InNormal, FHitResult &Hit, bool bHandleImpact)
 				}
 				else
 				{
@@ -2580,8 +2439,6 @@ void UOrbitCharacterMovementComponent::MoveAlongFloor(const FVector& InVelocity,
 			}
 			else if ( Hit.Component.IsValid() && !Hit.Component.Get()->CanCharacterStepUp(CharacterOwner) )
 			{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
-				HandleImpact(Hit, LastMoveTimeSlice, RampVector);
 				SlideAlongSurface(Delta, 1.f - PercentTimeApplied, Hit.Normal, Hit, true);
 				//SlideAlongSurface(Delta, 1.f - PercentTimeApplied, Hit.Normal, Hit, false);//gdg
 			}
@@ -2595,12 +2452,6 @@ FVector UOrbitCharacterMovementComponent::ComputeGroundMovementDelta(const FVect
 	const FVector ContactNormal = RampHit.Normal;
 
 	//if (FloorNormal.Z < (1.f - KINDA_SMALL_NUMBER) && FloorNormal.Z > KINDA_SMALL_NUMBER && ContactNormal.Z > KINDA_SMALL_NUMBER && !bHitFromLineTrace && IsWalkable(RampHit))
-	/*
-	if (FloorNormal.ProjectOnTo(GravityDirection).Size() < (1.f - KINDA_SMALL_NUMBER) && 
-		FloorNormal.ProjectOnTo(GravityDirection).Size() > KINDA_SMALL_NUMBER && 
-		ContactNormal.ProjectOnTo(GravityDirection).Size() > KINDA_SMALL_NUMBER && 
-		!bHitFromLineTrace && IsWalkable(RampHit))
-		*/
 	if (FVector::DotProduct(FloorNormal, GravityDirection) < (1.f - KINDA_SMALL_NUMBER) && FVector::DotProduct(FloorNormal, GravityDirection) > KINDA_SMALL_NUMBER && FVector::DotProduct(ContactNormal, GravityDirection) > KINDA_SMALL_NUMBER && !bHitFromLineTrace && IsWalkable(RampHit))
 	{
 		// Compute a vector that moves parallel to the surface, by projecting the horizontal movement 
@@ -2608,7 +2459,9 @@ FVector UOrbitCharacterMovementComponent::ComputeGroundMovementDelta(const FVect
 		const float FloorDotDelta = (FloorNormal | Delta);
 		//FVector RampMovement(Delta.X, Delta.Y, -FloorDotDelta / FloorNormal.Z);
 		//FVector RampMovement(Delta.X, Delta.Y, -FloorDotDelta / FloorNormal.ProjectOnTo(GravityDirection).Size() );//gdg
-		FVector RampMovement = Delta;//gdg
+	//	FVector RampMovement = Delta;//gdg
+		//FVector RampMovement = Delta / FloorNormal;
+		FVector RampMovement =  Delta.ProjectOnTo( FloorNormal ) * -1.0/FloorDotDelta;
 		
 		if (bMaintainHorizontalGroundVelocity)
 		{
@@ -2634,7 +2487,6 @@ float UOrbitCharacterMovementComponent::SlideAlongSurface(const FVector& Delta, 
 	{
 		// We don't want to be pushed up an unwalkable surface.
 		//if (Normal.Z > 0.f)
-		//if (Normal.ProjectOnTo(GravityDirection).Size() > 0.f)
 		if (FVector::DotProduct(Normal, GravityDirection) > 0.f)
 		{
 			if (!IsWalkable(Hit))
@@ -2644,7 +2496,6 @@ float UOrbitCharacterMovementComponent::SlideAlongSurface(const FVector& Delta, 
 			}
 		}
 		//else if (Normal.Z < -KINDA_SMALL_NUMBER)
-		//else if (Normal.ProjectOnTo(GravityDirection).Size() < -KINDA_SMALL_NUMBER)
 		else if (FVector::DotProduct(Normal, GravityDirection) < -KINDA_SMALL_NUMBER)
 		{
 			// Don't push down into the floor when the impact is on the upper portion of the capsule.
@@ -2652,7 +2503,6 @@ float UOrbitCharacterMovementComponent::SlideAlongSurface(const FVector& Delta, 
 			{
 				const FVector FloorNormal = CurrentFloor.HitResult.Normal;
 				//const bool bFloorOpposedToMovement = (Delta | FloorNormal) < 0.f && (FloorNormal.Z < 1.f - DELTA);
-				//const bool bFloorOpposedToMovement = (Delta | FloorNormal) < 0.f && (FloorNormal.ProjectOnTo(GravityDirection).Size() < 1.f - DELTA);
 				const bool bFloorOpposedToMovement = (Delta | FloorNormal) < 0.f && (FVector::DotProduct(FloorNormal, GravityDirection) < 1.f - DELTA);
 				if (bFloorOpposedToMovement)
 				{
@@ -2719,9 +2569,7 @@ float UOrbitCharacterMovementComponent::SlideAlongSurface(const FVector& Delta, 
 void FOrbitFindFloorResult::SetFromSweep(const FHitResult& InHit, const float InSweepFloorDist, const bool bIsWalkableFloor)
 {
 	bBlockingHit = InHit.IsValidBlockingHit(); // return bBlockingHit && !bStartPenetrating;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s bBlockingHit:%d"), __LINE__, __FUNCTIONW__, bBlockingHit);
 	bWalkableFloor = bIsWalkableFloor;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s bWalkableFloor:%d"), __LINE__, __FUNCTIONW__, bWalkableFloor);
 	bLineTrace = false;
 	FloorDist = InSweepFloorDist;
 	LineDist = 0.f;
@@ -2734,7 +2582,6 @@ void FOrbitFindFloorResult::SetFromLineTrace(const FHitResult& InHit, const floa
 	check(HitResult.bBlockingHit);
 	if (HitResult.bBlockingHit && InHit.bBlockingHit)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("%d %s:"), __LINE__, __FUNCTIONW__);
 		// Override most of the sweep result with the line result, but save some values
 		FHitResult OldHit(HitResult);
 		HitResult = InHit;
@@ -2749,7 +2596,6 @@ void FOrbitFindFloorResult::SetFromLineTrace(const FHitResult& InHit, const floa
 		bLineTrace = true;
 		LineDist = InLineDist;
 		bWalkableFloor = bIsWalkableFloor;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s bWalkableFloor:%d"), __LINE__, __FUNCTIONW__, bWalkableFloor);
 	}
 }
 bool UOrbitCharacterMovementComponent::MoveUpdatedComponent( const FVector& Delta, const FRotator& NewRotation, bool bSweep, FHitResult* OutHit)
@@ -2958,7 +2804,6 @@ void UOrbitCharacterMovementComponent::TwoWallAdjust(FVector &Delta, const FHitR
 		if (FVector::DotProduct( Delta, GravityDirection ) > 0.f)
 		{
 			//if ((Hit.Normal.Z >= WalkableFloorZ || IsWalkable(Hit)) && Hit.Normal.Z > KINDA_SMALL_NUMBER)
-			//if ((Hit.Normal.ProjectOnTo(GravityDirection).Size() >= GetWalkableFloorZ() || IsWalkable(Hit)) && Hit.Normal.Z > KINDA_SMALL_NUMBER)
 			if ((FVector::DotProduct(Hit.Normal, GravityDirection) >= GetWalkableFloorZ() || IsWalkable(Hit)) && FVector::DotProduct(Hit.Normal, GravityDirection) > KINDA_SMALL_NUMBER)
 				if ((FVector::DotProduct(Hit.Normal, GravityDirection) >= GetWalkableFloorZ() 
 					|| IsWalkable(Hit)) && FVector::DotProduct(Hit.Normal,GravityDirection) > KINDA_SMALL_NUMBER)
@@ -3095,7 +2940,8 @@ void UOrbitCharacterMovementComponent::PerformMovement(float DeltaSeconds)
 */
 				if (MovementMode == MOVE_Falling){
 					//Velocity = FVector(RootMotionVelocity.X, RootMotionVelocity.Y, Velocity.Z));
-					Velocity = Velocity - RootMotionVelocity.ProjectOnTo(GravityDirection);
+					//Velocity = Velocity - RootMotionVelocity.ProjectOnTo(GravityDirection);
+					RemoveVertical(Velocity);
 				}
 				else{
 					//Velocity = FVector(RootMotionVelocity.X, RootMotionVelocity.Y, RootMotionVelocity.Z));
@@ -3180,4 +3026,13 @@ void UOrbitCharacterMovementComponent::PerformMovement(float DeltaSeconds)
 	UpdateComponentVelocity();
 
 	LastUpdateLocation = UpdatedComponent ? UpdatedComponent->GetComponentLocation() : FVector::ZeroVector;
+}
+
+
+void UOrbitCharacterMovementComponent::RemoveVertical(FVector &OutVector){
+	//should this be GravityDirection or GravityVector...school was so long ago and in a galaxy far, far away
+	OutVector -= OutVector.ProjectOnTo(GravityVector);
+}
+void UOrbitCharacterMovementComponent::RemoveVertical(FVector &OutVector, FVector VerticalComponent){
+	OutVector -= OutVector.ProjectOnTo(VerticalComponent);
 }
