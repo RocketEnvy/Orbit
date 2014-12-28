@@ -198,27 +198,55 @@ void UOrbitCharacterMovementComponent::SumYaw(float yaw){
 
 void UOrbitCharacterMovementComponent::CalculateGravity()
 {
-		//FIXME Need to iterate over massive things to get vector sum of direction and force
-		const float gravBodyMass = 900000000.f;
-		GravityDistanceVector = FVector(0.f, 0.f, 5000.f) - GetOwner()->GetActorLocation();
-		//GravityDistanceVector = FVector(0.f, 0.f, 5000.f) -  GetOwner()->GetTransform().GetLocation();
-		GravityDistance = GravityDistanceVector.Size();
+
+																		   
+	GravityVector = FVector::ZeroVector;
+	float GravBodyMass=0.f, force=0.f;
+	for (TObjectIterator<AStaticMeshActor> Itr; Itr; ++Itr)
+	{
+		if(Itr->ActorHasTag(TEXT("Gravity"))){
+			GravBodyMass = Itr->GetStaticMeshComponent()->GetBodyInstance()->MassInKg;
+			UE_LOG(LogTemp, Warning, TEXT("%d %s: Mass:%f"), __LINE__, __FUNCTIONW__, GravBodyMass);
+			GravityDistanceVector = Itr->GetActorLocation() - GetOwner()->GetActorLocation();
+			force = ((Mass * GravBodyMass) / FMath::Square(GravityDistanceVector.Size()));
+			UE_LOG(LogTemp, Warning, TEXT("%d %s: Force:%f"), __LINE__, __FUNCTIONW__, force);
+			GravityVector += (GravityDirection * force);
+			UE_LOG(LogTemp, Warning, TEXT("%d %s: %s %s"), __LINE__, __FUNCTIONW__, *Itr->GetName(), 
+				*GravityVector.ToString());
+		}
+	}
+		GravityMagnitude = GravityVector.Size();
+//		GravityVector = SumOfForces;
+
+
 #ifdef VERSION27
-		GravityDirection = GravityDistanceVector.GetSafeNormal();
+		GravityDirection = GravityVector.GetSafeNormal();
 #else
-		GravityDirection = GravityDistanceVector.SafeNormal();
+		GravityDirection = GravityVector.SafeNormal();
 #endif
-		//	GravityDirection = GravityDistanceVector/GravityDistance;
-		GravityMagnitude = ((Mass * gravBodyMass) / FMath::Square(GravityDistance));
-		GravityVector = GravityDirection * GravityMagnitude;
-		//AddImpulse(GravityVector);
-		//AddForce(GravityVector);
+
+
+			if (GravityVector.Size() == 0){
+			UE_LOG(LogTemp, Warning, TEXT("couldn't default"), __LINE__, __FUNCTIONW__, GravityMagnitude);
+				//FIXME Need to iterate over massive things to get vector sum of direction and force
+				const float gravBodyMass = 900000000.f;
+				GravityDistanceVector = FVector(0.f, 0.f, 5000.f) - GetOwner()->GetActorLocation();
+				//GravityDistanceVector = FVector(0.f, 0.f, 5000.f) -  GetOwner()->GetTransform().GetLocation();
+				GravityDistance = GravityDistanceVector.Size();
+				/*
+						*/
+#ifdef VERSION27
+				GravityDirection = GravityDistanceVector.GetSafeNormal();
+#else
+				GravityDirection = GravityDistanceVector.SafeNormal();
+#endif
+				GravityDirection = GravityDistanceVector / GravityDistance;
+				GravityMagnitude = ((Mass * gravBodyMass) / FMath::Square(GravityDistance));
+				GravityVector = GravityDirection * GravityMagnitude;
+				//AddImpulse(GravityVector);
+				//AddForce(GravityVector);
+			}
 		AddForce(GravityVector);
-		//GetActorFeetLocation();
-		//AddRadialForce(GetActorFeetLocation(), 50.f, 50.f, ERadialImpulseFalloff::RIF_Constant);
-		//UPrimitiveComponent* MutableThis = const_cast<UPrimitiveComponent*>( Get );
-		//MutableThis
-		
 }
 
 float UOrbitCharacterMovementComponent::GetGravityZ() const
@@ -2951,7 +2979,7 @@ void UOrbitCharacterMovementComponent::PerformMovement(float DeltaSeconds)
 		}
 
 		// NaN tracking
-		checkf(!Velocity.ContainsNaN(), TEXT("UCharacterMovementComponent::PerformMovement: Velocity contains NaN (%s: %s)\n%s"), *GetPathNameSafe(this), *GetPathNameSafe(GetOuter()), *Velocity.ToString());
+//		checkf(!Velocity.ContainsNaN(), TEXT("UCharacterMovementComponent::PerformMovement: Velocity contains NaN (%s: %s)\n%s"), *GetPathNameSafe(this), *GetPathNameSafe(GetOuter()), *Velocity.ToString());
 
 		// Clear jump input now, to allow movement events to trigger it for next update.
 		CharacterOwner->ClearJumpInput();
