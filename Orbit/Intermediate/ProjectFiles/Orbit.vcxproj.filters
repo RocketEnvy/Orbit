@@ -4,7 +4,7 @@
 	<ItemGroup>
 		<None Include="..\..\Orbit.uproject" />
 		<Filter Include="Source">
-			<UniqueIdentifier>{EB4AF492-BD88-4D1B-AA5C-1EAC7BCFD764}</UniqueIdentifier>
+			<UniqueIdentifier>{121568A9-57B0-4D4F-821C-06BA6ABCF750}</UniqueIdentifier>
 		</Filter>
 		<None Include="..\..\Source\Orbit.Target.cs">
 			<Filter>Source</Filter>
@@ -13,7 +13,7 @@
 			<Filter>Source</Filter>
 		</None >
 		<Filter Include="Config">
-			<UniqueIdentifier>{0EB79EA0-DDB7-49F0-BECA-82871A85EAB0}</UniqueIdentifier>
+			<UniqueIdentifier>{BED817CC-2E28-491A-BB33-EADECFE342E9}</UniqueIdentifier>
 		</Filter>
 		<None Include="..\..\Config\DefaultEditor.ini">
 			<Filter>Config</Filter>
@@ -28,14 +28,17 @@
 			<Filter>Config</Filter>
 		</None >
 		<Filter Include="Source\Orbit">
-			<UniqueIdentifier>{27CE03EC-8623-4666-AD78-465864E03BCB}</UniqueIdentifier>
+			<UniqueIdentifier>{2E3F21A9-7429-4BA1-9015-DDF96AC0695B}</UniqueIdentifier>
 		</Filter>
 		<None Include="..\..\Source\Orbit\Orbit.Build.cs">
 			<Filter>Source\Orbit</Filter>
 		</None >
 		<Filter Include="Source\Orbit\Private">
-			<UniqueIdentifier>{4B98B10C-563F-43DD-AC3C-C5796B7062D4}</UniqueIdentifier>
+			<UniqueIdentifier>{6E9CF062-5416-4572-BAB7-74CD694F20CB}</UniqueIdentifier>
 		</Filter>
+		<ClCompile Include="..\..\Source\Orbit\Private\GravityManager.cpp">
+			<Filter>Source\Orbit\Private</Filter>
+		</ClCompile >
 		<ClCompile Include="..\..\Source\Orbit\Private\Orbit.cpp">
 			<Filter>Source\Orbit\Private</Filter>
 		</ClCompile >
@@ -55,8 +58,11 @@
 			<Filter>Source\Orbit\Private</Filter>
 		</ClCompile >
 		<Filter Include="Source\Orbit\Public">
-			<UniqueIdentifier>{901237AD-D1CF-4B27-A0B6-09D08C879B5B}</UniqueIdentifier>
+			<UniqueIdentifier>{09011278-A5D8-42E8-9D10-F8D6C4D7011A}</UniqueIdentifier>
 		</Filter>
+		<ClInclude Include="..\..\Source\Orbit\Public\GravityManager.h">
+			<Filter>Source\Orbit\Public</Filter>
+		</ClInclude >
 		<ClInclude Include="..\..\Source\Orbit\Public\Orbit.h">
 			<Filter>Source\Orbit\Public</Filter>
 		</ClInclude >
@@ -76,10 +82,10 @@
 			<Filter>Source\Orbit\Public</Filter>
 		</ClInclude >
 		<Filter Include="Source\Orbit\Resources">
-			<UniqueIdentifier>{A6A540F2-68E5-4E66-96D1-75D7BAAA20DB}</UniqueIdentifier>
+			<UniqueIdentifier>{93ED55ED-54CD-42F5-AF4F-5F7A81EFE1BF}</UniqueIdentifier>
 		</Filter>
 		<Filter Include="Source\Orbit\Resources\Windows">
-			<UniqueIdentifier>{9E53B94A-3515-48A2-81BC-10281AAE8855}</UniqueIdentifier>
+			<UniqueIdentifier>{DFDC607A-1EA7-463B-9035-F46CF83FDA9E}</UniqueIdentifier>
 		</Filter>
 		<ResourceCompile Include="..\..\Source\Orbit\Resources\Windows\Orbit.rc">
 			<Filter>Source\Orbit\Resources\Windows</Filter>

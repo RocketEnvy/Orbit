@@ -4,8 +4,10 @@
 
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Orbit, "Orbit" );
+
 /*
-FVector Orbit::GetGravityDirection(){
+FVector ApplyGravity(){
+	UE_LOG(LogTemp, Warning, TEXT("%d %s: In Orbit Main"), __LINE__, __FUNCTIONW__ ); 
 	return FVector(1, 2, 3);
 }
 

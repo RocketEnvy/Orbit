@@ -2,6 +2,7 @@
 
 #pragma once
 #include "Orbit.h"
+#include "GravityManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "OrbitCharacterMovementComponent.generated.h"
 
@@ -63,6 +64,8 @@ public:
 	};
 	/*
 */
+	UGravityManager* GravityManager;
+
 	FVector GravityDirection, GravityDistanceVector, GravityVector;
 	float GravityMagnitude, GravityDistance;
 	float YawSum;
@@ -143,4 +146,7 @@ public:
 	virtual void PerformMovement(float DeltaTime) override;
 	virtual void RemoveVertical(FVector &OutVector);
 	virtual void RemoveVertical(FVector &OutVector, FVector VerticalComponent);
+
+protected:
+	int TickCounter; //TODO, get rid of this
 };

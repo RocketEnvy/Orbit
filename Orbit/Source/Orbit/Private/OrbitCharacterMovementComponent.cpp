@@ -64,17 +64,25 @@ UOrbitCharacterMovementComponent::UOrbitCharacterMovementComponent(const class F
 	GravityVector = FVector::ZeroVector;
 	GravityDistanceVector = FVector::ZeroVector;
 	YawSum = 0.0;
+	TickCounter = 0;
+	UGravityManager* GravityManager = NewObject<UGravityManager>();
 }
 
 void UOrbitCharacterMovementComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	CalculateGravity();
+		//UE_LOG(LogTemp, Warning, TEXT("Bloody fucking hell:%s %s"), *GetOwner()->GetName(),*GetOwner()->GetClass()->GetName());
+		//GravityManager->RegisterActor(*GetOwner(), GravityVector);
+		GravityManager->Start();
+		CalculateGravity();
 }
+//	PostLoad()
+
+
 void UOrbitCharacterMovementComponent::TickComponent( float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction )
 {
 	Super::Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	GravityManager->ApplyGravity();//this probably should go elsewhere
 
 	// SCOPE_CYCLE_COUNTER(Super.STAT_CharacterMovementTick);
 
@@ -174,12 +182,8 @@ void UOrbitCharacterMovementComponent::TickComponent( float DeltaTime, enum ELev
 	}
 
 
-
-
-
-	//end Paste
-
-	CalculateGravity();//FIXME: probably won't have to do the complete calculation every tick
+	TickCounter++;
+	if(TickCounter % 2 == 0) CalculateGravity();//FIXME: I think UE4 has ways to avoid modulo
 	FRotator GravRot = GravityDirection.Rotation();
 	GravRot.Pitch += 120;//not sure why this correction is needed 
 		checkf(!GravRot.ContainsNaN(), TEXT("Tick: GravRot contains NaN"));
@@ -198,55 +202,29 @@ void UOrbitCharacterMovementComponent::SumYaw(float yaw){
 
 void UOrbitCharacterMovementComponent::CalculateGravity()
 {
-
-																		   
-	GravityVector = FVector::ZeroVector;
-	float GravBodyMass=0.f, force=0.f;
-	for (TObjectIterator<AStaticMeshActor> Itr; Itr; ++Itr)
-	{
-		if(Itr->ActorHasTag(TEXT("Gravity"))){
-			GravBodyMass = Itr->GetStaticMeshComponent()->GetBodyInstance()->MassInKg;
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: Mass:%f"), __LINE__, __FUNCTIONW__, GravBodyMass);
-			GravityDistanceVector = Itr->GetActorLocation() - GetOwner()->GetActorLocation();
-			force = ((Mass * GravBodyMass) / FMath::Square(GravityDistanceVector.Size()));
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: Force:%f"), __LINE__, __FUNCTIONW__, force);
-			GravityVector += (GravityDirection * force);
-			UE_LOG(LogTemp, Warning, TEXT("%d %s: %s %s"), __LINE__, __FUNCTIONW__, *Itr->GetName(), 
-				*GravityVector.ToString());
-		}
-	}
+	/*
+		GravityVector = FVector(1.f, 1.f, 1.f);
 		GravityMagnitude = GravityVector.Size();
-//		GravityVector = SumOfForces;
-
-
-#ifdef VERSION27
 		GravityDirection = GravityVector.GetSafeNormal();
-#else
-		GravityDirection = GravityVector.SafeNormal();
-#endif
-
-
-			if (GravityVector.Size() == 0){
-			UE_LOG(LogTemp, Warning, TEXT("couldn't default"), __LINE__, __FUNCTIONW__, GravityMagnitude);
-				//FIXME Need to iterate over massive things to get vector sum of direction and force
-				const float gravBodyMass = 900000000.f;
-				GravityDistanceVector = FVector(0.f, 0.f, 5000.f) - GetOwner()->GetActorLocation();
-				//GravityDistanceVector = FVector(0.f, 0.f, 5000.f) -  GetOwner()->GetTransform().GetLocation();
-				GravityDistance = GravityDistanceVector.Size();
-				/*
-						*/
-#ifdef VERSION27
-				GravityDirection = GravityDistanceVector.GetSafeNormal();
-#else
-				GravityDirection = GravityDistanceVector.SafeNormal();
-#endif
-				GravityDirection = GravityDistanceVector / GravityDistance;
-				GravityMagnitude = ((Mass * gravBodyMass) / FMath::Square(GravityDistance));
-				GravityVector = GravityDirection * GravityMagnitude;
-				//AddImpulse(GravityVector);
-				//AddForce(GravityVector);
-			}
+	*/
+	FGravityBody GB = GravityManager->GetGravityBody(FString("PlayerStart"));//don't know what 2do about this yet
+	GravityVector = GB.GravityVector;
+//UE_LOG(LogTemp, Warning, TEXT("%d %s: GV %s"), __LINE__, __FUNCTIONW__, *GravityVector.ToString());
+	if (GravityVector == FVector(0,0,0) ){
+		GravityVector = FVector(0.f, 0.f, 10.f);
+		GravityMagnitude = GravityVector.Size();
+		GravityDirection = GravityVector.GetSafeNormal();
+	}
+	else
+	{
+		GravityMagnitude = GB.GetMagnitude();
+		GravityDirection = GB.GetDirection();
+	}
+	/*
+	if(IsValid(this)){
 		AddForce(GravityVector);
+		//AddImpulse(GravityVector);
+	}*/
 }
 
 float UOrbitCharacterMovementComponent::GetGravityZ() const
@@ -609,8 +587,6 @@ void UOrbitCharacterMovementComponent::PhysMoonWalking(float deltaTime, int32 It
 		MaintainHorizontalGroundVelocity();
 	}
 }
-//things that sweep
-//ComputeFloorDist
 void UOrbitCharacterMovementComponent::AdjustFloorHeight()
 {
 

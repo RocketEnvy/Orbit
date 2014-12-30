@@ -52,12 +52,14 @@
 		<None Include="..\..\Config\DefaultGame.ini" />
 		<None Include="..\..\Config\DefaultInput.ini" />
 		<None Include="..\..\Source\Orbit\Orbit.Build.cs" />
+		<ClCompile Include="..\..\Source\Orbit\Private\GravityManager.cpp" />
 		<ClCompile Include="..\..\Source\Orbit\Private\Orbit.cpp" />
 		<ClCompile Include="..\..\Source\Orbit\Private\OrbitCharacter.cpp" />
 		<ClCompile Include="..\..\Source\Orbit\Private\OrbitCharacterMovementComponent.cpp" />
 		<ClCompile Include="..\..\Source\Orbit\Private\OrbitGameMode.cpp" />
 		<ClCompile Include="..\..\Source\Orbit\Private\OrbitHUD.cpp" />
 		<ClCompile Include="..\..\Source\Orbit\Private\OrbitProjectile.cpp" />
+		<ClInclude Include="..\..\Source\Orbit\Public\GravityManager.h" />
 		<ClInclude Include="..\..\Source\Orbit\Public\Orbit.h" />
 		<ClInclude Include="..\..\Source\Orbit\Public\OrbitCharacter.h" />
 		<ClInclude Include="..\..\Source\Orbit\Public\OrbitCharacterMovementComponent.h" />
